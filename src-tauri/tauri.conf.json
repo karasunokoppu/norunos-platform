@@ -12,18 +12,30 @@
   "app": {
     "windows": [
       {
-        "title": "norunos-platform",
-        "width": 800,
-        "height": 600
+        "title": "Noruno Platform",
+        "width": 1200,
+        "height": 800,
+        "maximized": true,
+        "decorations": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "pattern": {
+        "use": "isolation",
+        "options": {
+          "dir": "../dist-isolation"
+        }
+      }
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": [
+      "nsis",
+      "deb",
+      "appimage"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
