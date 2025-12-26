@@ -1,4 +1,11 @@
 import React from "react";
+import BooksView from "./components/Books/BooksView";
+import CalenderView from "./components/Calender/CalenderView";
+import DashboardView from "./components/Dashboard/DashboardView";
+import GanttChartView from "./components/GanttChart/GanttChartView";
+import NotesView from "./components/Notes/NotesView";
+import SettingsView from "./components/Settings/Settings";
+import ToDoListView from "./components/ToDoList/ToDoList";
 import NorunoContextMenu from "./ui/NorunoContextMenu";
 import NorunoDropdown from "./ui/NorunoDropdown";
 
@@ -50,6 +57,24 @@ const MainField: React.FC<MainFieldProps> = ({ currentContent }) => {
 						},
 					]}
 				/>
+			)}
+
+			{currentContent === "To Do List" ? (
+				<ToDoListView />
+			) : currentContent === "Dashboard" ? (
+				<DashboardView />
+			) : currentContent === "Calender" ? (
+				<CalenderView />
+			) : currentContent === "Gantt Chart" ? (
+				<GanttChartView />
+			) : currentContent === "Notes" ? (
+				<NotesView />
+			) : currentContent === "Books" ? (
+				<BooksView />
+			) : currentContent === "Settings" ? (
+				<SettingsView />
+			) : (
+				<div className="bg-danger">Error: currentContent is undefined.</div>
 			)}
 		</div>
 	);
