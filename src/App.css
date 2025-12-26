@@ -1,26 +1,25 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #1a1b26;
-  --color-bg-secondary: #24283b;
-  --color-bg-tertiary: #414868;
-  --color-bg-hover: #343b58;
-  --color-bg-active: #444b6a;
-  --color-text-primary: #c0caf5;
-  --color-text-secondary: #a9b1d6;
-  --color-text-tertiary: #787c99;
-  --color-text-disabled: #565f89;
-  --color-border-primary: #414868;
-  --color-border-secondary: #565f89;
-  --color-accent-primary: #fff;
-  --color-accent-secondary: #5f86d8;
-  --color-accent-hover: #4f6fc0;
-  --color-accent-light: rgba(95, 134, 216, 0.1);
-  --color-text-on-accent: #ffffff;
-  --color-danger: #f7768e;
-  --color-danger-hover: #d7566e;
-  --color-shadow: rgba(0, 0, 0, 0.3);
-  --color-shadow-strong: rgba(0, 0, 0, 0.6);
-  --color-overlay: rgba(0, 0, 0, 0.7);
-
+	--color-bg-primary: #1a1b26;
+	--color-bg-secondary: #24283b;
+	--color-bg-tertiary: #414868;
+	--color-bg-hover: #343b58;
+	--color-bg-active: #444b6a;
+	--color-text-primary: #c0caf5;
+	--color-text-secondary: #a9b1d6;
+	--color-text-tertiary: #787c99;
+	--color-text-disabled: #565f89;
+	--color-border-primary: #414868;
+	--color-border-secondary: #565f89;
+	--color-accent-primary: #fff;
+	--color-accent-secondary: #5f86d8;
+	--color-accent-hover: #4f6fc0;
+	--color-accent-light: rgba(95, 134, 216, 0.1);
+	--color-text-on-accent: #ffffff;
+	--color-danger: #f7768e;
+	--color-danger-hover: #d7566e;
+	--color-shadow: rgba(0, 0, 0, 0.3);
+	--color-shadow-strong: rgba(0, 0, 0, 0.6);
+	--color-overlay: rgba(0, 0, 0, 0.7);
 }
