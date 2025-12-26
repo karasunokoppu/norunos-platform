@@ -12,7 +12,8 @@
   --color-text-disabled: #565f89;
   --color-border-primary: #414868;
   --color-border-secondary: #565f89;
-  --color-accent-primary: #5f86d8;
+  --color-accent-primary: #fff;
+  --color-accent-secondary: #5f86d8;
   --color-accent-hover: #4f6fc0;
   --color-accent-light: rgba(95, 134, 216, 0.1);
   --color-text-on-accent: #ffffff;

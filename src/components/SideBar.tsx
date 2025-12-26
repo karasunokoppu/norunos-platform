@@ -2,13 +2,19 @@ import React from "react";
 // import { contents } from "../type";
 
 
-const SideBar: React.FC = (
+interface SideBarProps {
+  currentContent: string;
+  onSelectContent: (content: string) => void;
+}
 
-) => {
+const SideBar: React.FC<SideBarProps> = ({
+    currentContent,
+    onSelectContent
+}) => {
     const [isSideBarOpened, setIsSideBarOpened] = React.useState(true);
-    const contents = ["To Do List", "Calender", "Notes", "Settings"];//TODO Sample contents[Content管理用の方とかを実装する]
+    const contents = ["To Do List", "Dashboard", "Calender", "Gantt Chart", "Notes", "Books", "Settings"];//TODO Sample contents[Content管理用の方とかを実装する]
 
-    let mainCss = "bg-bg-primary h-svh border-r-2 border-r-white text-text-primary flex flex-col justify-content-center px-2 pb-2" + (isSideBarOpened ? " w-40" : " w-fit");
+    let mainCss = "bg-bg-primary h-svh border-r-2 border-r-accent-primary text-text-primary flex flex-col justify-content-center px-2 pb-2" + (isSideBarOpened ? " w-40" : " w-fit");
     let buttonCss = " h-10 w-full flex flex-row justify-start items-center hover:bg-bg-hover hover:text-text-secondary " + (isSideBarOpened ? "" : "px-0");
 
     return(
@@ -17,10 +23,24 @@ const SideBar: React.FC = (
                 <div className="px-2">☰</div>
                 <div>{isSideBarOpened ? "Button01" : ""}</div>
             </button>
+
             <div className="h-px w-full bg-bg-tertiary"></div>
+
             {contents.map((content, index) => (
-                <button key={index} className={buttonCss}>
-                    <div className="px-2">📄</div>
+                <button
+                key={index}
+                className={buttonCss + (currentContent === content ? " bg-bg-hover text-text-secondary" : "")}
+                onClick={() => onSelectContent(content)}
+                >
+                    <div className="px-2">
+                        {content === "To Do List" && "📋"}
+                        {content === "Dashboard" && "📊"}
+                        {content === "Calender" && "📅"}
+                        {content === "Gantt Chart" && "🕓"}
+                        {content === "Notes" && "📝"}
+                        {content === "Books" && "📚"}
+                        {content === "Settings" && "⚙️"}
+                    </div>
                     <div>{isSideBarOpened ? content : ""}</div>
                 </button>
             ))}
