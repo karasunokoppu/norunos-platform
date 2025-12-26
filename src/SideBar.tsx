@@ -1,4 +1,5 @@
 import React from "react";
+
 // import { contents } from "../type";
 
 interface SideBarProps {

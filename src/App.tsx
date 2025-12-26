@@ -1,7 +1,7 @@
 import "./App.css";
+import { useEffect, useState } from "react";
 import MainField from "./MainField";
 import SideBar from "./SideBar";
-import { useState, useEffect } from "react";
 
 function App() {
 	const [currentContent, setContent] = useState<string>("To Do List");

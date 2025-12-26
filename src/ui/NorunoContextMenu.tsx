@@ -53,6 +53,7 @@ const NorunoContextMenu: React.FC<ContextMenuProps> = ({
 	const menuContent = (
 		<>
 			<div
+				role="menu"
 				className="fixed top-0 left-0 w-dvw h-dvh z-9998 cursor-default"
 				onClick={onClose}
 				onKeyDown={(e) => {

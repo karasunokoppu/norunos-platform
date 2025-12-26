@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface DropdownOption {
 	value: string;
@@ -93,6 +93,7 @@ const NorunoDropdown: React.FC<NorunoDropdownProps> = ({
 
 	return (
 		<div
+			role="listbox"
 			className="h-fit w-fit rounded-md border border-border-secondary bg-bg-primary px-2 py-1"
 			ref={dropdownRef}
 			onKeyDown={handleKeyDown}

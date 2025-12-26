@@ -1,6 +1,6 @@
 import React from "react";
-import NorunoDropdown from "./ui/NorunoDropdown";
 import NorunoContextMenu from "./ui/NorunoContextMenu";
+import NorunoDropdown from "./ui/NorunoDropdown";
 
 interface MainFieldProps {
 	currentContent: string;
@@ -17,6 +17,7 @@ const MainField: React.FC<MainFieldProps> = ({ currentContent }) => {
 
 	return (
 		<div
+			role="menu"
 			className="flow flow-col h-svh w-full bg-bg-secondary text-text-secondary"
 			onContextMenu={(e) => {
 				e.preventDefault();
