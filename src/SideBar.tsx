@@ -19,6 +19,7 @@ const SideBar: React.FC<SideBarProps> = ({
 		"Gantt Chart",
 		"Notes",
 		"Books",
+		"MindMap",
 		"Settings",
 	]; //TODO Sample contents[Content管理用の方とかを実装する]
 
@@ -61,6 +62,7 @@ const SideBar: React.FC<SideBarProps> = ({
 						{content === "Gantt Chart" && "🕓"}
 						{content === "Notes" && "📝"}
 						{content === "Books" && "📚"}
+						{content === "MindMap" && "🧠"}
 						{content === "Settings" && "⚙️"}
 					</div>
 					<div>{isSideBarOpened ? content : ""}</div>

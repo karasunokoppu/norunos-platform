@@ -8,6 +8,7 @@ import SettingsView from "./components/Settings/Settings";
 import ToDoListView from "./components/ToDoList/ToDoList";
 import NorunoContextMenu from "./ui/NorunoContextMenu";
 import NorunoDropdown from "./ui/NorunoDropdown";
+import MindMapView from "./components/MindMap/MindMap";
 
 interface MainFieldProps {
 	currentContent: string;
@@ -71,6 +72,8 @@ const MainField: React.FC<MainFieldProps> = ({ currentContent }) => {
 				<NotesView />
 			) : currentContent === "Books" ? (
 				<BooksView />
+			) : currentContent === "MindMap" ? (
+				<MindMapView />
 			) : currentContent === "Settings" ? (
 				<SettingsView />
 			) : (
