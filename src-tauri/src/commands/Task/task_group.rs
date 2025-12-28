@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::commands::Task::task::Task;
+use crate::commands::task::task::Task;
 
 pub struct TaskGroup {
     id: Uuid,
