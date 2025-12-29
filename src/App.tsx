@@ -13,7 +13,7 @@ function App() {
 	}, []);
 
 	return (
-		<main className="flex flex-row">
+		<main className="h-full w-full flex flex-row gap-0">
 			<SideBar currentContent={currentContent} onSelectContent={setContent} />
 			<MainField currentContent={currentContent} />
 		</main>

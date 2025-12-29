@@ -25,7 +25,7 @@ const SideBar: React.FC<SideBarProps> = ({
 
 	const mainCss =
 		"bg-bg-primary h-svh border-r-2 border-r-accent-primary text-text-primary flex flex-col justify-content-center px-2 pb-2" +
-		(isSideBarOpened ? " w-40" : " w-fit");
+		(isSideBarOpened ? " w-1/10" : " w-fit");
 	const buttonCss =
 		" h-10 w-full flex flex-row justify-start items-center hover:bg-bg-hover hover:text-text-secondary " +
 		(isSideBarOpened ? "" : "px-0");
