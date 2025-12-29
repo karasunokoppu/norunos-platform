@@ -1,4 +1,3 @@
-use crate::commands::task::sub_task::Subtask;
 use chrono::{DateTime, Local};
 use uuid::Uuid;
 
@@ -7,7 +6,7 @@ pub struct Task {
     pub completed: bool,
     pub description: String,
     pub details: Option<String>,
-    pub subtasks: Vec<Subtask>,
+    pub subtasks: Vec<Uuid>,
     //ガントチャート
     pub start_datetime: Option<DateTime<Local>>,
     pub end_datetime: Option<DateTime<Local>>,

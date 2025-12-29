@@ -4,14 +4,14 @@ use uuid::Uuid;
 //TODO Serde
 pub struct MemoContent {
     pub meta_data_id: Uuid,
-    pub content: String,
+    pub content: Option<String>,
 }
 
 impl MemoContent {
     fn default() -> Self {
         MemoContent {
             meta_data_id: Uuid::new_v4(), //メタデータのid
-            content: "".to_string(),
+            content: None,
         }
     }
 }
