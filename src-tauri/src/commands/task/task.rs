@@ -1,14 +1,21 @@
-use crate::commands::task::{
-    gantt_element::GanttElement, sub_task::Subtask, task_element::TaskElement,
-};
+use crate::commands::task::sub_task::Subtask;
+use chrono::{DateTime, Local};
 use uuid::Uuid;
 
 pub struct Task {
-    id: Uuid,
-    completed: bool,
-    task_element: TaskElement,
-    gantt_element: GanttElement,
-    subtasks: Vec<Subtask>,
+    pub id: Uuid,
+    pub completed: bool,
+    pub description: String,
+    pub details: Option<String>,
+    pub subtasks: Vec<Subtask>,
+    //ガントチャート
+    pub start_datetime: Option<DateTime<Local>>,
+    pub end_datetime: Option<DateTime<Local>>,
+    pub progress: u32, //進捗率
+    //メタ情報
+    pub created_at: DateTime<Local>,
+    pub updated_at: DateTime<Local>,
+    pub deleted_at: DateTime<Local>,
 }
 
 impl Task {
@@ -16,68 +23,15 @@ impl Task {
         Task {
             id: Uuid::new_v4(),
             completed: false,
-            task_element: TaskElement::default(),
-            gantt_element: GanttElement::default(),
+            description: "No description.".to_string(),
+            details: None,
             subtasks: Vec::new(),
-        }
-    }
-
-    pub fn update_completed(self, completed: bool) -> Self {
-        Task {
-            id: Uuid::new_v4(),
-            completed: completed,
-            task_element: self.task_element,
-            gantt_element: self.gantt_element,
-            subtasks: self.subtasks,
-        }
-    }
-
-    pub fn update_task_element(self, task_element: TaskElement) -> Self {
-        Task {
-            id: Uuid::new_v4(),
-            completed: self.completed,
-            task_element: task_element,
-            gantt_element: self.gantt_element,
-            subtasks: self.subtasks,
-        }
-    }
-
-    pub fn update_gantt_element(self, gantt_element: GanttElement) -> Self {
-        Task {
-            id: Uuid::new_v4(),
-            completed: self.completed,
-            task_element: self.task_element,
-            gantt_element: gantt_element,
-            subtasks: self.subtasks,
-        }
-    }
-
-    pub fn push_subtask(mut self, subtask: Subtask) -> Self {
-        self.subtasks.push(subtask);
-
-        Task {
-            id: self.id,
-            completed: self.completed,
-            task_element: self.task_element,
-            gantt_element: self.gantt_element,
-            subtasks: self.subtasks,
-        }
-    }
-    pub fn removed_subtask(mut self, subtask: Subtask) -> Self {
-        let removed_index = self
-            .subtasks
-            .iter()
-            .enumerate()
-            .find(|&x| x.1.id == subtask.id)
-            .unwrap();
-        self.subtasks.remove(removed_index.0);
-
-        Task {
-            id: self.id,
-            completed: self.completed,
-            task_element: self.task_element,
-            gantt_element: self.gantt_element,
-            subtasks: self.subtasks,
+            start_datetime: None,
+            end_datetime: None,
+            progress: 0,
+            created_at: DateTime::default(),
+            updated_at: DateTime::default(),
+            deleted_at: DateTime::default(),
         }
     }
 }

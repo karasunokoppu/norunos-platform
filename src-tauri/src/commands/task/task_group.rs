@@ -3,9 +3,9 @@ use uuid::Uuid;
 use crate::commands::task::task::Task;
 
 pub struct TaskGroup {
-    id: Uuid,
-    name: String,
-    tasks: Vec<Task>,
+    pub id: Uuid,
+    pub name: String,
+    pub tasks: Vec<Task>,
 }
 
 impl TaskGroup {
