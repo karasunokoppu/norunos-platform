@@ -94,7 +94,7 @@ const NorunoDropdown: React.FC<NorunoDropdownProps> = ({
 	return (
 		<div
 			role="listbox"
-			className="relative w-full"
+			className="relative w-32"
 			ref={dropdownRef}
 			onKeyDown={handleKeyDown}
 		>
