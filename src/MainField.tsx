@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import BooksView from "./components/Books/BooksView";
 import CalenderView from "./components/Calender/CalenderView";
 import DashboardView from "./components/Dashboard/DashboardView";

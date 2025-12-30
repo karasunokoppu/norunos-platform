@@ -105,12 +105,17 @@ const NorunoDropdown: React.FC<NorunoDropdownProps> = ({
 			>
 				<span className="truncate">{displayText}</span>
 				<svg
-					className={`w-4 h-4 ml-2 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+					className={`w-4 h-4 ml-2 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
 				>
-					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth={2}
+						d="M19 9l-7 7-7-7"
+					/>
 				</svg>
 			</button>
 
@@ -123,7 +128,9 @@ const NorunoDropdown: React.FC<NorunoDropdownProps> = ({
 							className={`w-full text-left px-3 py-2 text-text-secondary hover:bg-bg-hover focus:bg-bg-hover focus:outline-none transition-colors duration-150 ${
 								index === focusedIndex ? "bg-bg-hover" : ""
 							} ${
-								option.value === value ? "bg-accent-light text-text-on-accent" : ""
+								option.value === value
+									? "bg-accent-light text-text-on-accent"
+									: ""
 							}`}
 							onClick={() => handleOptionClick(option.value)}
 							onMouseEnter={() => setFocusedIndex(index)}

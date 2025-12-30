@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 
 interface NorunoDatePickerProps {
 	value: string;
@@ -18,7 +19,7 @@ const NorunoDatePicker: React.FC<NorunoDatePickerProps> = ({
 		value ? value.split(" ")[0] : "",
 	);
 	const [selectedTime, setSelectedTime] = useState(
-		value && value.includes(" ") ? value.split(" ")[1] : "12:00",
+		value?.includes(" ") ? value.split(" ")[1] : "12:00",
 	);
 
 	// Helper to get days in month
@@ -74,9 +75,9 @@ const NorunoDatePicker: React.FC<NorunoDatePickerProps> = ({
 					key={day}
 					className={`h-8 flex items-center justify-center rounded cursor-pointer text-sm hover:bg-bg-hover transition-colors ${
 						isSelected
-							? "bg-accent-primary text-white font-bold"
+							? "bg-accent-secondary text-white font-bold"
 							: isToday
-								? "border border-accent-primary font-bold text-accent-primary"
+								? "border border-border-secondary font-bold text-accent-primary"
 								: "text-text-primary"
 					}`}
 					onClick={() => handleDateClick(day)}
@@ -129,7 +130,7 @@ const NorunoDatePicker: React.FC<NorunoDatePickerProps> = ({
 						type="time"
 						value={selectedTime}
 						onChange={(e) => setSelectedTime(e.target.value)}
-						className="p-1.5 rounded border border-border-secondary bg-bg-primary text-text-primary text-sm focus:outline-none focus:border-accent-primary transition-colors"
+						className="p-1.5 rounded border border-border-secondary bg-bg-primary text-text-primary text-sm focus:outline-none focus:border-border-secondary transition-colors"
 					/>
 				</div>
 
@@ -141,7 +142,7 @@ const NorunoDatePicker: React.FC<NorunoDatePickerProps> = ({
 						Cancel
 					</button>
 					<button
-						className="px-4 py-2 rounded-md bg-accent-primary text-text-on-accent font-medium border-none hover:bg-accent-hover transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-secondary shadow-sm"
+						className="px-4 py-2 rounded-md bg-accent-secondary text-text-on-accent font-medium border-none hover:bg-accent-hover transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-secondary shadow-sm"
 						onClick={handleOk}
 					>
 						OK

@@ -87,7 +87,9 @@ const NorunoContextMenu: React.FC<ContextMenuProps> = ({
 					<button
 						type="button"
 						className={`cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-bg-hover focus:bg-bg-hover focus:outline-none rounded-sm ${
-							it.danger ? "text-danger hover:bg-danger-light focus:bg-danger-light" : ""
+							it.danger
+								? "text-danger hover:bg-danger-light focus:bg-danger-light"
+								: ""
 						}`}
 						key={it.label} // 可能なら it.label など一意なID推奨
 						onClick={() => handleItemClick(it)}
