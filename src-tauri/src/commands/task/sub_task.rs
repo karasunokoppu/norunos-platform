@@ -39,7 +39,10 @@ impl Subtask {
     }
 
     // データベース操作
-    pub fn save(&self, task_id: Uuid) -> Result<(), rusqlite::Error> {
+    pub fn save(&mut self, task_id: Uuid) -> Result<(), rusqlite::Error> {
+        if self.updated_at.is_none() {
+            self.updated_at = Some(Local::now());
+        }
         let conn = rusqlite::Connection::open("norunos.db")?;
         conn.execute(
             "INSERT OR REPLACE INTO subtasks (id, order_index, description, completed, created_at, updated_at, deleted_at, task_id)
@@ -50,8 +53,8 @@ impl Subtask {
                 self.description,
                 self.completed as i32,
                 self.created_at.to_rfc3339(),
-                self.updated_at.unwrap().to_rfc3339(),
-                self.deleted_at.unwrap().to_rfc3339(),
+                self.updated_at.map(|dt| dt.to_rfc3339()),
+                self.deleted_at.map(|dt| dt.to_rfc3339()),
                 task_id.to_string(),
             ],
         )?;
@@ -67,8 +70,8 @@ impl Subtask {
             let description: String = row.get(2)?;
             let completed: i32 = row.get(3)?;
             let created_at: String = row.get(4)?;
-            let updated_at: String = row.get(5)?;
-            let deleted_at: String = row.get(6)?;
+            let updated_at: Option<String> = row.get(5)?;
+            let deleted_at: Option<String> = row.get(6)?;
 
             Ok(Subtask {
                 id: Uuid::parse_str(&id).unwrap(),
@@ -78,16 +81,16 @@ impl Subtask {
                 created_at: chrono::DateTime::parse_from_rfc3339(&created_at)
                     .unwrap()
                     .with_timezone(&Local),
-                updated_at: Some(
-                    chrono::DateTime::parse_from_rfc3339(&updated_at)
+                updated_at: updated_at.map(|s| {
+                    chrono::DateTime::parse_from_rfc3339(&s)
                         .unwrap()
-                        .with_timezone(&Local),
-                ),
-                deleted_at: Some(
-                    chrono::DateTime::parse_from_rfc3339(&deleted_at)
+                        .with_timezone(&Local)
+                }),
+                deleted_at: deleted_at.map(|s| {
+                    chrono::DateTime::parse_from_rfc3339(&s)
                         .unwrap()
-                        .with_timezone(&Local),
-                ),
+                        .with_timezone(&Local)
+                }),
             })
         })?;
         subtasks.collect()
@@ -103,7 +106,7 @@ impl Subtask {
                 completed INTEGER NOT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
-                deleted_at TEXT NOT NULL,
+                deleted_at TEXT,
                 task_id TEXT NOT NULL,
                 FOREIGN KEY (task_id) REFERENCES tasks (id)
             )",
@@ -126,18 +129,21 @@ mod tests {
         assert_ne!(subtask.id, Uuid::nil());
         // タイムスタンプが初期化されていることを確認
         assert!(subtask.created_at <= Local::now());
-        // assert!(subtask.updated_at <= Local::now());
-        // assert!(subtask.deleted_at <= Local::now());
+        assert!(subtask.updated_at.is_none());
+        assert!(subtask.deleted_at.is_none());
     }
 
     #[test]
     fn test_subtask_save_and_load() {
+        // Remove existing db
+        std::fs::remove_file("norunos.db").ok();
+
         // Init tables
         use super::super::task::Task;
         Task::init_table().unwrap();
         Subtask::init_table().unwrap();
 
-        let task = Task::new();
+        let mut task = Task::new();
         task.save().unwrap();
 
         let mut subtask = Subtask::new();

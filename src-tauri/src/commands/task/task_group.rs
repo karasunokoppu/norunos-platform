@@ -45,7 +45,10 @@ impl TaskGroup {
     }
 
     // データベース操作
-    pub fn save(&self) -> Result<(), rusqlite::Error> {
+    pub fn save(&mut self) -> Result<(), rusqlite::Error> {
+        if self.updated_at.is_none() {
+            self.updated_at = Some(Local::now());
+        }
         let conn = rusqlite::Connection::open("norunos.db")?;
         let tasks_json = serde_json::to_string(&self.tasks).unwrap();
         conn.execute(
@@ -56,8 +59,8 @@ impl TaskGroup {
                 self.name,
                 tasks_json,
                 self.created_at.to_rfc3339(),
-                self.updated_at.unwrap().to_rfc3339(),
-                self.deleted_at.unwrap().to_rfc3339(),
+                self.updated_at.map(|dt| dt.to_rfc3339()),
+                self.deleted_at.map(|dt| dt.to_rfc3339()),
             ],
         )?;
         Ok(())
@@ -73,8 +76,8 @@ impl TaskGroup {
             let name: String = row.get(1)?;
             let tasks_json: String = row.get(2)?;
             let created_at: String = row.get(3)?;
-            let updated_at: String = row.get(4)?;
-            let deleted_at: String = row.get(5)?;
+            let updated_at: Option<String> = row.get(4)?;
+            let deleted_at: Option<String> = row.get(5)?;
 
             let tasks: Vec<Uuid> = serde_json::from_str(&tasks_json).unwrap_or_default();
 
@@ -85,16 +88,16 @@ impl TaskGroup {
                 created_at: chrono::DateTime::parse_from_rfc3339(&created_at)
                     .unwrap()
                     .with_timezone(&Local),
-                updated_at: Some(
-                    chrono::DateTime::parse_from_rfc3339(&updated_at)
+                updated_at: updated_at.map(|s| {
+                    chrono::DateTime::parse_from_rfc3339(&s)
                         .unwrap()
-                        .with_timezone(&Local),
-                ),
-                deleted_at: Some(
-                    chrono::DateTime::parse_from_rfc3339(&deleted_at)
+                        .with_timezone(&Local)
+                }),
+                deleted_at: deleted_at.map(|s| {
+                    chrono::DateTime::parse_from_rfc3339(&s)
                         .unwrap()
-                        .with_timezone(&Local),
-                ),
+                        .with_timezone(&Local)
+                }),
             })
         })?;
         task_groups.collect()
@@ -109,7 +112,7 @@ impl TaskGroup {
                 tasks TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
-                deleted_at TEXT NOT NULL
+                deleted_at TEXT
             )",
             [],
         )?;
@@ -129,12 +132,15 @@ mod tests {
         assert_ne!(task_group.id, Uuid::nil());
         // タイムスタンプが初期化されていることを確認
         assert!(task_group.created_at <= Local::now());
-        // assert!(task_group.updated_at <= Local::now());
-        // assert!(task_group.deleted_at <= Local::now());
+        assert!(task_group.updated_at.is_none());
+        assert!(task_group.deleted_at.is_none());
     }
 
     #[test]
     fn test_task_group_save_and_load() {
+        // Remove existing db
+        std::fs::remove_file("norunos.db").ok();
+
         // Init table
         TaskGroup::init_table().unwrap();
 
