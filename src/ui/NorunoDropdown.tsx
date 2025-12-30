@@ -94,29 +94,29 @@ const NorunoDropdown: React.FC<NorunoDropdownProps> = ({
 	return (
 		<div
 			role="listbox"
-			className="h-fit w-fit rounded-md border border-border-secondary bg-bg-primary px-2 py-1"
+			className="w-20 border-2 border-border-primary flex-1 bg-bg-active text-text-secondary"
 			ref={dropdownRef}
 			onKeyDown={handleKeyDown}
 		>
 			<button
 				type="button"
-				className={!isOpen ? "" : "border-border-primary border-b"}
+				className={"w-full flex flex-row justify-center items-center gap-2"}
 				onClick={() => setIsOpen(!isOpen)}
 			>
 				<span>{displayText}</span>
-				<span className="pl-1 text-sm">{isOpen ? "▲" : "▼"}</span>
+				<span className="text-sm">{isOpen ? "▲" : "▼"}</span>
 			</button>
 
 			{isOpen && (
-				<div className="flex flex-col divide-y divide-solid divide-border-primary">
+				<div className="w-20 absolute z-1000 overflow-auto flex flex-col bg-bg-active">
 					{options.map((option, index) => (
 						<button
 							type="button"
 							key={option.value}
 							className={
 								option.label === displayText
-									? "m-1 bg-bg-active hover:bg-bg-hover"
-									: "m-1 bg-bg-primary hover:bg-bg-hover"
+									? "text-text-on-accent "
+									: ""
 							}
 							onClick={() => handleOptionClick(option.value)}
 							onMouseEnter={() => setFocusedIndex(index)}
