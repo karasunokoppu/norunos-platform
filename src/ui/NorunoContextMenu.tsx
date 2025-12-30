@@ -72,7 +72,7 @@ const NorunoContextMenu: React.FC<ContextMenuProps> = ({
 				}}
 				// Tailwindのクラス構成は維持しつつ、shadowを追加して浮遊感を強調
 				className={
-					"flex flex-col min-w-120px divide-y divide-accent-secondary rounded-sm border border-accent-secondary bg-bg-primary py-1 text-text-primary shadow-lg z-9999 fixed"
+					"flex flex-col min-w-120px divide-y divide-accent-secondary rounded-md border border-accent-secondary bg-bg-primary py-1 text-text-primary shadow-xl z-50 fixed animate-in fade-in zoom-in-95 duration-150"
 				}
 				// 1. ARIA ロールを追加して、これがメニューのコンテナであることを明示 (例として、一般的なメニューの場合は role="menu" を使用)
 				role="menu"
@@ -86,8 +86,8 @@ const NorunoContextMenu: React.FC<ContextMenuProps> = ({
 				{items.map((it) => (
 					<button
 						type="button"
-						className={`cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-bg-hover ${
-							it.danger ? "text-red-500 hover:bg-red-50" : ""
+						className={`cursor-pointer px-3 py-1.5 text-sm transition-colors hover:bg-bg-hover focus:bg-bg-hover focus:outline-none rounded-sm ${
+							it.danger ? "text-danger hover:bg-danger-light focus:bg-danger-light" : ""
 						}`}
 						key={it.label} // 可能なら it.label など一意なID推奨
 						onClick={() => handleItemClick(it)}

@@ -104,11 +104,18 @@ const NorunoDropdown: React.FC<NorunoDropdownProps> = ({
 				onClick={() => setIsOpen(!isOpen)}
 			>
 				<span className="truncate">{displayText}</span>
-				<span className="text-sm ml-2 flex-shrink-0">{isOpen ? "▲" : "▼"}</span>
+				<svg
+					className={`w-4 h-4 ml-2 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+				</svg>
 			</button>
 
 			{isOpen && (
-				<div className="absolute z-10 w-full mt-1 bg-bg-active border border-border-primary rounded-md shadow-lg max-h-60 overflow-auto">
+				<div className="absolute z-50 w-full mt-1 bg-bg-active border border-border-primary rounded-md shadow-lg max-h-60 overflow-auto animate-in fade-in slide-in-from-top-2 duration-200">
 					{options.map((option, index) => (
 						<button
 							type="button"

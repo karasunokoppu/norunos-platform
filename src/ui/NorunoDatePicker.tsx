@@ -89,12 +89,12 @@ const NorunoDatePicker: React.FC<NorunoDatePickerProps> = ({
 	};
 
 	return (
-		<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
-			<div className="bg-bg-secondary rounded-xl shadow-strong border border-border-primary min-w-[320px] p-5 animate-in fade-in zoom-in duration-200">
+		<div className="fixed inset-0 bg-overlay z-50 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-300">
+			<div className="bg-bg-secondary rounded-lg shadow-strong border border-border-primary min-w-[320px] p-6 animate-in fade-in zoom-in-95 duration-300">
 				<div className="flex justify-between items-center mb-5">
 					<button
 						onClick={handlePrevMonth}
-						className="p-2 text-text-secondary hover:text-text-primary bg-transparent border-none cursor-pointer text-lg font-bold transition-colors"
+						className="p-2 text-text-secondary hover:text-text-primary bg-bg-hover hover:bg-bg-active rounded-md border-none cursor-pointer text-lg font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-secondary"
 					>
 						&lt;
 					</button>
@@ -103,7 +103,7 @@ const NorunoDatePicker: React.FC<NorunoDatePickerProps> = ({
 					</h3>
 					<button
 						onClick={handleNextMonth}
-						className="p-2 text-text-secondary hover:text-text-primary bg-transparent border-none cursor-pointer text-lg font-bold transition-colors"
+						className="p-2 text-text-secondary hover:text-text-primary bg-bg-hover hover:bg-bg-active rounded-md border-none cursor-pointer text-lg font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-secondary"
 					>
 						&gt;
 					</button>
@@ -133,15 +133,15 @@ const NorunoDatePicker: React.FC<NorunoDatePickerProps> = ({
 					/>
 				</div>
 
-				<div className="flex justify-end gap-2.5 mt-5">
+				<div className="flex justify-end gap-3 mt-6">
 					<button
-						className="px-4 py-2 rounded bg-bg-active text-text-primary font-bold border-none cursor-pointer hover:bg-bg-hover transition-colors"
+						className="px-4 py-2 rounded-md bg-bg-active text-text-primary font-medium border border-border-secondary hover:bg-bg-hover transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-secondary"
 						onClick={onClose}
 					>
 						Cancel
 					</button>
 					<button
-						className="px-4 py-2 rounded bg-accent-primary text-white font-bold border-none cursor-pointer hover:bg-accent-hover transition-colors shadow-sm"
+						className="px-4 py-2 rounded-md bg-accent-primary text-text-on-accent font-medium border-none hover:bg-accent-hover transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-secondary shadow-sm"
 						onClick={handleOk}
 					>
 						OK
