@@ -94,30 +94,30 @@ const NorunoDropdown: React.FC<NorunoDropdownProps> = ({
 	return (
 		<div
 			role="listbox"
-			className="w-20 border-2 border-border-primary flex-1 bg-bg-active text-text-secondary"
+			className="relative w-full"
 			ref={dropdownRef}
 			onKeyDown={handleKeyDown}
 		>
 			<button
 				type="button"
-				className={"w-full flex flex-row justify-center items-center gap-2"}
+				className="w-full flex items-center justify-between px-3 py-2 bg-bg-active border border-border-primary rounded-md text-text-secondary hover:bg-bg-hover focus:outline-none focus:ring-2 focus:ring-accent-secondary focus:border-accent-secondary transition-colors duration-200"
 				onClick={() => setIsOpen(!isOpen)}
 			>
-				<span>{displayText}</span>
-				<span className="text-sm">{isOpen ? "▲" : "▼"}</span>
+				<span className="truncate">{displayText}</span>
+				<span className="text-sm ml-2 flex-shrink-0">{isOpen ? "▲" : "▼"}</span>
 			</button>
 
 			{isOpen && (
-				<div className="w-20 absolute z-1000 overflow-auto flex flex-col bg-bg-active">
+				<div className="absolute z-10 w-full mt-1 bg-bg-active border border-border-primary rounded-md shadow-lg max-h-60 overflow-auto">
 					{options.map((option, index) => (
 						<button
 							type="button"
 							key={option.value}
-							className={
-								option.label === displayText
-									? "text-text-on-accent "
-									: ""
-							}
+							className={`w-full text-left px-3 py-2 text-text-secondary hover:bg-bg-hover focus:bg-bg-hover focus:outline-none transition-colors duration-150 ${
+								index === focusedIndex ? "bg-bg-hover" : ""
+							} ${
+								option.value === value ? "bg-accent-light text-text-on-accent" : ""
+							}`}
 							onClick={() => handleOptionClick(option.value)}
 							onMouseEnter={() => setFocusedIndex(index)}
 						>
