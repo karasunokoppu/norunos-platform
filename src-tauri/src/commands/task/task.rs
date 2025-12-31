@@ -65,9 +65,9 @@ impl Task {
         let subtasks_json = serde_json::to_string(&self.subtasks).unwrap();
         let start_dt = self.start_datetime.map(|dt| dt.to_rfc3339());
         let end_dt = self.end_datetime.map(|dt| dt.to_rfc3339());
-        conn.execute(
+        conn.execute(//データベースにデータがあれば置き換え、なければ新規作成fd
             "INSERT OR REPLACE INTO tasks (id, completed, description, details, subtasks, start_datetime, end_datetime, progress, created_at, updated_at, deleted_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             rusqlite::params![
                 self.id.to_string(),
                 self.completed as i32,
