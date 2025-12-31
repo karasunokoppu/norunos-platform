@@ -4,13 +4,15 @@ import TaskCard from "./TaskCard";
 
 interface TaskListProps {
 	tasks: Task[];
+	onUpdateTask: (task: Task) => void;
+	onDeleteTask: (task: Task) => void;
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
+const TaskList: React.FC<TaskListProps> = ({ tasks, onUpdateTask, onDeleteTask }) => {
 	return (
 		<div className="w-full">
 			{tasks.map((task: Task) => (
-				<TaskCard task={task} />
+				<TaskCard task={task} onUpdateTask={onUpdateTask} onDeleteTask={onDeleteTask} />
 			))}
 		</div>
 	);

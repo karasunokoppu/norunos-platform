@@ -3,25 +3,50 @@ import { useEffect, useState } from "react";
 import MainField from "./MainField";
 import SideBar from "./SideBar";
 import { Task } from "./type";
+import { getTasks, createTask, updateTask, deleteTask } from "./tauri/to_do_list_api";
 
 function App() {
 	const [currentContent, setContent] = useState<string>("To Do List");
-	const [tasks, setTasks] = useState<Task[]>([
-		{
-			id: "xxxxxx",
-			description: "test",
-			details: "test details",
-			start_date: "yyyy/mm/dd",
-			end_date: "yyyy/mm/dd",
-			group: "test group",
-			completed: false,
-			subtasks: [{
-				id:"subtask id",
-				description: "subtask description",
-				completed: false,
-			}]
-		},
-	]);
+	const [tasks, setTasks] = useState<Task[]>([]);
+
+	useEffect(() => {
+		const loadTasks = async () => {
+			try {
+				const loadedTasks = await getTasks();
+				setTasks(loadedTasks);
+			} catch (error) {
+				console.error("Failed to load tasks:", error);
+			}
+		};
+		loadTasks();
+	}, []);
+
+	const handleCreateTask = async (task: Task) => {
+		try {
+			const updatedTasks = await createTask(task);
+			setTasks(updatedTasks);
+		} catch (error) {
+			console.error("Failed to create task:", error);
+		}
+	};
+
+	const handleUpdateTask = async (task: Task) => {
+		try {
+			const updatedTasks = await updateTask(task);
+			setTasks(updatedTasks);
+		} catch (error) {
+			console.error("Failed to update task:", error);
+		}
+	};
+
+	const handleDeleteTask = async (task: Task) => {
+		try {
+			const updatedTasks = await deleteTask(task);
+			setTasks(updatedTasks);
+		} catch (error) {
+			console.error("Failed to delete task:", error);
+		}
+	};
 
 	useEffect(() => {
 		const handler = (e: MouseEvent) => e.preventDefault();
@@ -32,7 +57,13 @@ function App() {
 	return (
 		<main className="h-full w-full flex flex-row gap-0">
 			<SideBar currentContent={currentContent} onSelectContent={setContent} />
-			<MainField currentContent={currentContent} tasks={tasks} />
+			<MainField
+				currentContent={currentContent}
+				tasks={tasks}
+				onCreateTask={handleCreateTask}
+				onUpdateTask={handleUpdateTask}
+				onDeleteTask={handleDeleteTask}
+			/>
 		</main>
 	);
 }

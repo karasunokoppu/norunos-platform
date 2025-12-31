@@ -5,14 +5,17 @@ import TaskList from "./TaskList";
 
 interface ToDoListViewProps {
 	tasks: Task[];
+	onCreateTask: (task: Task) => void;
+	onUpdateTask: (task: Task) => void;
+	onDeleteTask: (task: Task) => void;
 }
 
-const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks }) => {
+const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onCreateTask, onUpdateTask, onDeleteTask }) => {
 	return (
 		<div className="h-full w-full flex justify-center items-start py-8">
 			<div className="h-full w-full max-w-4xl flex flex-col justify-start items-center space-y-6">
-				<TaskInput />
-				<TaskList tasks={tasks} />
+				<TaskInput onCreateTask={onCreateTask} />
+				<TaskList tasks={tasks} onUpdateTask={onUpdateTask} onDeleteTask={onDeleteTask} />
 			</div>
 		</div>
 	);

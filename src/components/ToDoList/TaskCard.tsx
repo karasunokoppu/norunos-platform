@@ -5,15 +5,24 @@ import SubTaskCard from "./SubTaskCard";
 
 interface TaskCardProps {
 	task: Task;
+	onUpdateTask: (task: Task) => void;
+	onDeleteTask: (task: Task) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({task}) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdateTask, onDeleteTask }) => {
     const [isOpened, setIsOpened] = useState(false);
 
 	return (
         <div className="w-full bg-bg-primary text-text-primary">
             <div className="flex flex-row">
-                <input type="checkbox" checked={task.completed} />
+                <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => {
+                        const updatedTask = { ...task, completed: !task.completed };
+                        onUpdateTask(updatedTask);
+                    }}
+                />
                 <div 
                 onClick={()=>setIsOpened(!isOpened)}
                 className="w-full px-2 flex flex-row justify-between"
@@ -31,6 +40,12 @@ const TaskCard: React.FC<TaskCardProps> = ({task}) => {
                         </div>
                     </div>
                 </div>
+                <button
+                    onClick={() => onDeleteTask(task)}
+                    className="px-2 py-1 bg-red-500 text-white rounded"
+                >
+                    削除
+                </button>
             </div>
             {task.subtasks.length != 0 ? (
                 <SubTaskCard 

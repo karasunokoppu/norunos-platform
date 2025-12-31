@@ -1,10 +1,13 @@
 import React from "react";
 import NorunoDatePicker from "../../ui/NorunoDatePicker";
 import NorunoDropdown from "../../ui/NorunoDropdown";
+import { Task } from "../../type";
 
-type TaskInputProps = {};
+type TaskInputProps = {
+	onCreateTask: (task: Task) => void;
+};
 
-const TaskInput: React.FC<TaskInputProps> = () => {
+const TaskInput: React.FC<TaskInputProps> = ({ onCreateTask }) => {
 	const [isInputOpen, setIsInputOpen] = React.useState(false);
 	const [description, setDescription] = React.useState("");
 	const [details, setDetails] = React.useState("");
@@ -36,7 +39,30 @@ const TaskInput: React.FC<TaskInputProps> = () => {
 						onFocus={() => setIsInputOpen(true)}
 						className={`${inputCss} flex-1`}
 					/>
-					<button type="button" className={buttonCss}>
+					<button
+						type="button"
+						className={buttonCss}
+						onClick={() => {
+							const newTask: Task = {
+								id: "",
+								description,
+								start_date: startDate || undefined,
+								end_date: endDate || undefined,
+								group: taskGroup,
+								details,
+								completed: false,
+								subtasks: [],
+							};
+							onCreateTask(newTask);
+							// Reset form
+							setDescription("");
+							setDetails("");
+							setStartDate("");
+							setEndDate("");
+							setTaskGroup(testGroup[1]);
+							setIsInputOpen(false);
+						}}
+					>
 						タスク追加
 					</button>
 				</div>

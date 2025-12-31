@@ -1,130 +1,84 @@
-use chrono::{DateTime, Local};
-use serde::{Deserialize, Serialize};
-use serde_json;
-use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
+use serde::{Serialize, Deserialize};
+use sqlx::{Row, SqlitePool};
+use crate::commands::task::sub_task::Subtask;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Task {
-    pub id: Uuid,
+    pub id: String,
     pub completed: bool,
     pub description: String,
     pub details: Option<String>,
-    pub subtasks: Vec<Uuid>,
-    //ガントチャート
-    pub start_datetime: Option<DateTime<Local>>,
-    pub end_datetime: Option<DateTime<Local>>,
-    pub progress: u32, //進捗率
-    //メタ情報
-    pub created_at: DateTime<Local>,
-    pub updated_at: Option<DateTime<Local>>,
-    pub deleted_at: Option<DateTime<Local>>,
+    pub subtasks: Vec<Subtask>,
+    pub start_date: Option<String>,
+    pub end_date: Option<String>,
 }
 
 impl Task {
     pub fn new() -> Self {
         Task {
-            id: Uuid::new_v4(),
+            id: Uuid::new_v4().to_string(),
             completed: false,
             description: "No description.".to_string(),
             details: None,
             subtasks: Vec::new(),
-            start_datetime: None,
-            end_datetime: None,
-            progress: 0,
-            created_at: Local::now(),
-            updated_at: None,
-            deleted_at: None,
+            start_date: None,
+            end_date: None,
         }
     }
 
-    pub fn add_subtask(&mut self, subtask_id: Uuid) {
-        self.subtasks.push(subtask_id);
+    pub fn add_subtask(&mut self, subtask: Subtask) {
+        self.subtasks.push(subtask);
     }
 
-    pub fn remove_subtask(&mut self, subtask_id: Uuid) {
-        self.subtasks.retain(|&id| id != subtask_id);
-    }
-
-    // メタ情報更新
-    pub fn set_created_at(&mut self) {
-        self.created_at = Local::now();
-    }
-
-    pub fn update_updated_at(&mut self) {
-        self.updated_at = Some(Local::now());
-    }
-
-    pub fn set_deleted(&mut self) {
-        self.deleted_at = Some(Local::now());
+    pub fn remove_subtask(&mut self, subtask_id: String) {
+        self.subtasks.retain(|s| s.id != subtask_id);
     }
 
     // データベース操作
     pub async fn save(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
         Task::init_table(pool).await?;
-        self.update_updated_at();
-        let subtasks_json = serde_json::to_string(&self.subtasks).unwrap_or_default();
-        let start_dt = self.start_datetime.map(|dt| dt.to_rfc3339());
-        let end_dt = self.end_datetime.map(|dt| dt.to_rfc3339());
-        let updated_at = self.updated_at.map(|dt| dt.to_rfc3339());
-        let deleted_at = self.deleted_at.map(|dt| dt.to_rfc3339());
+        Subtask::init_table(pool).await?;
 
         sqlx::query(
-            "INSERT OR REPLACE INTO tasks (id, completed, description, details, subtasks, start_datetime, end_datetime, progress, created_at, updated_at, deleted_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT OR REPLACE INTO tasks (id, completed, description, details, start_date, end_date)
+             VALUES (?, ?, ?, ?, ?, ?)"
         )
-        .bind(self.id.to_string())
+        .bind(&self.id)
         .bind(self.completed)
         .bind(&self.description)
         .bind(&self.details)
-        .bind(&subtasks_json)
-        .bind(&start_dt)
-        .bind(&end_dt)
-        .bind(self.progress)
-        .bind(self.created_at.to_rfc3339())
-        .bind(&updated_at)
-        .bind(&deleted_at)
+        .bind(&self.start_date)
+        .bind(&self.end_date)
         .execute(pool)
         .await?;
+
+        // Save subtasks
+        for subtask in &mut self.subtasks {
+            subtask.save(self.id.clone(), pool).await?;
+        }
+
         Ok(())
     }
 
     pub async fn load_all(pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
         Task::init_table(pool).await?;
-        let rows = sqlx::query("SELECT * FROM tasks WHERE deleted_at IS NULL")
+        Subtask::init_table(pool).await?;
+
+        let rows = sqlx::query("SELECT * FROM tasks")
             .fetch_all(pool)
             .await?;
 
         let mut tasks = Vec::new();
         for row in rows {
             let id: String = row.try_get("id")?;
-            let id = Uuid::parse_str(&id).unwrap_or(Uuid::new_v4());
             let completed: bool = row.try_get("completed")?;
             let description: String = row.try_get("description")?;
             let details: Option<String> = row.try_get("details")?;
-            let subtasks_json: String = row.try_get("subtasks")?;
-            let subtasks: Vec<Uuid> = serde_json::from_str(&subtasks_json).unwrap_or_default();
-            let start_datetime: Option<String> = row.try_get("start_datetime")?;
-            let start_datetime = start_datetime
-                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
-                .map(|dt| dt.with_timezone(&Local));
-            let end_datetime: Option<String> = row.try_get("end_datetime")?;
-            let end_datetime = end_datetime
-                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
-                .map(|dt| dt.with_timezone(&Local));
-            let progress: u32 = row.try_get("progress")?;
-            let created_at_str: String = row.try_get("created_at")?;
-            let created_at = DateTime::parse_from_rfc3339(&created_at_str)
-                .unwrap_or_else(|_| Local::now().into())
-                .with_timezone(&Local);
-            let updated_at: Option<String> = row.try_get("updated_at")?;
-            let updated_at = updated_at
-                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
-                .map(|dt| dt.with_timezone(&Local));
-            let deleted_at: Option<String> = row.try_get("deleted_at")?;
-            let deleted_at = deleted_at
-                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
-                .map(|dt| dt.with_timezone(&Local));
+            let start_date: Option<String> = row.try_get("start_date")?;
+            let end_date: Option<String> = row.try_get("end_date")?;
+
+            let subtasks = Subtask::load_for_task(id.clone(), pool).await?;
 
             tasks.push(Task {
                 id,
@@ -132,12 +86,8 @@ impl Task {
                 description,
                 details,
                 subtasks,
-                start_datetime,
-                end_datetime,
-                progress,
-                created_at,
-                updated_at,
-                deleted_at,
+                start_date,
+                end_date,
             });
         }
         Ok(tasks)
@@ -150,14 +100,9 @@ impl Task {
                 completed BOOLEAN NOT NULL,
                 description TEXT NOT NULL,
                 details TEXT,
-                subtasks TEXT NOT NULL,
-                start_datetime TEXT,
-                end_datetime TEXT,
-                progress INTEGER NOT NULL,
-                created_at TEXT NOT NULL,
-                updated_at TEXT,
-                deleted_at TEXT
-            )",
+                start_date TEXT,
+                end_date TEXT
+            )"
         )
         .execute(pool)
         .await?;
@@ -186,7 +131,6 @@ mod tests {
         assert!(!task.completed);
         assert_eq!(task.description, "No description.");
         assert!(task.subtasks.is_empty());
-        assert_eq!(task.progress, 0);
     }
 
     #[tokio::test]

@@ -12,13 +12,16 @@ import { Task } from "./type";
 interface MainFieldProps {
 	currentContent: string;
 	tasks: Task[];
+	onCreateTask: (task: Task) => void;
+	onUpdateTask: (task: Task) => void;
+	onDeleteTask: (task: Task) => void;
 }
 
-const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks }) => {
+const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks, onCreateTask, onUpdateTask, onDeleteTask }) => {
 	return (
 		<div className="w-full bg-bg-secondary">
 			{currentContent === "To Do List" ? (
-				<ToDoListView tasks={tasks} />
+				<ToDoListView tasks={tasks} onCreateTask={onCreateTask} onUpdateTask={onUpdateTask} onDeleteTask={onDeleteTask} />
 			) : currentContent === "Dashboard" ? (
 				<DashboardView />
 			) : currentContent === "Calender" ? (
