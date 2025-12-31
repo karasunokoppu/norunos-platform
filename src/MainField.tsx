@@ -15,13 +15,14 @@ interface MainFieldProps {
 	onCreateTask: (task: Task) => void;
 	onUpdateTask: (task: Task) => void;
 	onDeleteTask: (task: Task) => void;
+	onUpdateTasks: (tasks: Task[]) => void;
 }
 
-const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks, onCreateTask, onUpdateTask, onDeleteTask }) => {
+const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks, onCreateTask, onUpdateTask, onDeleteTask, onUpdateTasks }) => {
 	return (
 		<div className="w-full bg-bg-secondary">
 			{currentContent === "To Do List" ? (
-				<ToDoListView tasks={tasks} onCreateTask={onCreateTask} onUpdateTask={onUpdateTask} onDeleteTask={onDeleteTask} />
+				<ToDoListView tasks={tasks} onCreateTask={onCreateTask} onUpdateTask={onUpdateTask} onDeleteTask={onDeleteTask} onUpdateTasks={onUpdateTasks} />
 			) : currentContent === "Dashboard" ? (
 				<DashboardView />
 			) : currentContent === "Calender" ? (

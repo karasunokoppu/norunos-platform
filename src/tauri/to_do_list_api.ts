@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Task } from "../type";
+import type { Task, Subtask } from "../type";
 
 export async function getTasks(): Promise<Task[]> {
     try{
@@ -33,6 +33,24 @@ export async function deleteTask(task: Task): Promise<Task[]> {
         return await invoke<Task[]>("delete_task", { task });
     }catch(e){
         console.error("deleteTask failed", e);
+        throw e;
+    }
+}
+
+export async function addSubtask(taskId: string, subtask: Subtask): Promise<Task[]> {
+    try{
+        return await invoke<Task[]>("add_subtask", { taskId, subtask });
+    }catch(e){
+        console.error("addSubtask failed", e);
+        throw e;
+    }
+}
+
+export async function updateSubtask(subtask: Subtask): Promise<Task[]> {
+    try{
+        return await invoke<Task[]>("update_subtask", { subtask });
+    }catch(e){
+        console.error("updateSubtask failed", e);
         throw e;
     }
 }

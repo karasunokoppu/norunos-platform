@@ -48,6 +48,10 @@ function App() {
 		}
 	};
 
+	const handleUpdateTasks = (tasks: Task[]) => {
+		setTasks(tasks);
+	};
+
 	useEffect(() => {
 		const handler = (e: MouseEvent) => e.preventDefault();
 		document.addEventListener("contextmenu", handler);
@@ -63,6 +67,7 @@ function App() {
 				onCreateTask={handleCreateTask}
 				onUpdateTask={handleUpdateTask}
 				onDeleteTask={handleDeleteTask}
+				onUpdateTasks={handleUpdateTasks}
 			/>
 		</main>
 	);

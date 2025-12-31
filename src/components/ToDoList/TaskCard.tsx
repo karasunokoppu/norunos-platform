@@ -7,9 +7,10 @@ interface TaskCardProps {
 	task: Task;
 	onUpdateTask: (task: Task) => void;
 	onDeleteTask: (task: Task) => void;
+	onUpdateTasks: (tasks: Task[]) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdateTask, onDeleteTask }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdateTask, onDeleteTask, onUpdateTasks }) => {
     const [isOpened, setIsOpened] = useState(false);
 
 	return (
@@ -47,15 +48,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdateTask, onDeleteTask })
                     削除
                 </button>
             </div>
-            {task.subtasks.length != 0 ? (
                 <SubTaskCard 
                 subtasks={task.subtasks}
                 isOpened={isOpened}
+                taskId={task.id}
+                onUpdateTasks={onUpdateTasks}
                 />
-            ) : (
-                <div>-</div>
-            )}
-            
         </div>
     );
 };

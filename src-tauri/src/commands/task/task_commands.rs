@@ -1,5 +1,6 @@
 use crate::AppState;
 use crate::commands::task::task::Task;
+use crate::commands::task::sub_task::Subtask;
 use uuid::Uuid;
 
 #[tauri::command]
@@ -35,5 +36,24 @@ pub async fn delete_task(state: tauri::State<'_, AppState>, task: Task) -> Resul
         .await
         .map_err(|e| e.to_string())?;
 
+    Task::load_all(&state.pool).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn add_subtask(state: tauri::State<'_, AppState>, task_id: String, mut subtask: Subtask) -> Result<Vec<Task>, String> {
+    subtask.id = Uuid::new_v4().to_string();
+    subtask.save(task_id, &state.pool).await.map_err(|e| e.to_string())?;
+    Task::load_all(&state.pool).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn update_subtask(state: tauri::State<'_, AppState>, subtask: Subtask) -> Result<Vec<Task>, String> {
+    sqlx::query("UPDATE subtasks SET description = ?, completed = ? WHERE id = ?")
+        .bind(&subtask.description)
+        .bind(subtask.completed)
+        .bind(&subtask.id)
+        .execute(&state.pool)
+        .await
+        .map_err(|e| e.to_string())?;
     Task::load_all(&state.pool).await.map_err(|e| e.to_string())
 }
