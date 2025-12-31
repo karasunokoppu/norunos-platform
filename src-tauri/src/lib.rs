@@ -1,15 +1,9 @@
 mod commands;
 
-use crate::commands::task_commands::*;
+use crate::commands::task::task_commands::*;
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::SqlitePool;
 use tauri::Manager;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
 
 struct AppState {
     pool: SqlitePool,
@@ -45,16 +39,10 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet,
-            init_database,
             create_task,
             get_tasks,
             update_task,
             delete_task,
-            create_task_group,
-            get_task_groups,
-            create_subtask,
-            get_subtasks_for_task
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

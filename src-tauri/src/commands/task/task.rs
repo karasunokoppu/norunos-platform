@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use serde_json;
-use sqlx::{query, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -61,6 +61,7 @@ impl Task {
 
     // データベース操作
     pub async fn save(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        Task::init_table(pool).await?;
         self.update_updated_at();
         let subtasks_json = serde_json::to_string(&self.subtasks).unwrap_or_default();
         let start_dt = self.start_datetime.map(|dt| dt.to_rfc3339());
@@ -89,6 +90,7 @@ impl Task {
     }
 
     pub async fn load_all(pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        Task::init_table(pool).await?;
         let rows = sqlx::query("SELECT * FROM tasks WHERE deleted_at IS NULL")
             .fetch_all(pool)
             .await?;
