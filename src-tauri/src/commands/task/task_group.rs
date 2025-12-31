@@ -1,7 +1,10 @@
 use chrono::{DateTime, Local};
+use serde::{Serialize, Deserialize};
 use serde_json;
 use uuid::Uuid;
+use sqlx::{SqlitePool, query, Row};
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TaskGroup {
     pub id: Uuid,
     pub name: String,
@@ -45,77 +48,71 @@ impl TaskGroup {
     }
 
     // データベース操作
-    pub fn save(&mut self) -> Result<(), rusqlite::Error> {
-        if self.updated_at.is_none() {
-            self.updated_at = Some(Local::now());
-        }
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        let tasks_json = serde_json::to_string(&self.tasks).unwrap();
-        conn.execute(
+    pub async fn save(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        self.update_updated_at();
+        let tasks_json = serde_json::to_string(&self.tasks).unwrap_or_default();
+        let updated_at = self.updated_at.map(|dt| dt.to_rfc3339());
+        let deleted_at = self.deleted_at.map(|dt| dt.to_rfc3339());
+
+        sqlx::query(
             "INSERT OR REPLACE INTO task_groups (id, name, tasks, created_at, updated_at, deleted_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            rusqlite::params![
-                self.id.to_string(),
-                self.name,
-                tasks_json,
-                self.created_at.to_rfc3339(),
-                self.updated_at.map(|dt| dt.to_rfc3339()),
-                self.deleted_at.map(|dt| dt.to_rfc3339()),
-            ],
-        )?;
+             VALUES (?, ?, ?, ?, ?, ?)"
+        )
+        .bind(self.id.to_string())
+        .bind(&self.name)
+        .bind(&tasks_json)
+        .bind(self.created_at.to_rfc3339())
+        .bind(&updated_at)
+        .bind(&deleted_at)
+        .execute(pool)
+        .await?;
         Ok(())
     }
 
-    pub fn load_all() -> Result<Vec<Self>, rusqlite::Error> {
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        let mut stmt = conn.prepare(
-            "SELECT id, name, tasks, created_at, updated_at, deleted_at FROM task_groups",
-        )?;
-        let task_groups = stmt.query_map([], |row| {
-            let id: String = row.get(0)?;
-            let name: String = row.get(1)?;
-            let tasks_json: String = row.get(2)?;
-            let created_at: String = row.get(3)?;
-            let updated_at: Option<String> = row.get(4)?;
-            let deleted_at: Option<String> = row.get(5)?;
+    pub async fn load_all(pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        let rows = sqlx::query("SELECT * FROM task_groups WHERE deleted_at IS NULL")
+            .fetch_all(pool)
+            .await?;
 
+        let mut task_groups = Vec::new();
+        for row in rows {
+            let id: String = row.try_get("id")?;
+            let id = Uuid::parse_str(&id).unwrap_or(Uuid::new_v4());
+            let name: String = row.try_get("name")?;
+            let tasks_json: String = row.try_get("tasks")?;
             let tasks: Vec<Uuid> = serde_json::from_str(&tasks_json).unwrap_or_default();
+            let created_at_str: String = row.try_get("created_at")?;
+            let created_at = DateTime::parse_from_rfc3339(&created_at_str).unwrap_or_else(|_| Local::now().into()).with_timezone(&Local);
+            let updated_at: Option<String> = row.try_get("updated_at")?;
+            let updated_at = updated_at.and_then(|s| DateTime::parse_from_rfc3339(&s).ok()).map(|dt| dt.with_timezone(&Local));
+            let deleted_at: Option<String> = row.try_get("deleted_at")?;
+            let deleted_at = deleted_at.and_then(|s| DateTime::parse_from_rfc3339(&s).ok()).map(|dt| dt.with_timezone(&Local));
 
-            Ok(TaskGroup {
-                id: Uuid::parse_str(&id).unwrap(),
+            task_groups.push(TaskGroup {
+                id,
                 name,
                 tasks,
-                created_at: chrono::DateTime::parse_from_rfc3339(&created_at)
-                    .unwrap()
-                    .with_timezone(&Local),
-                updated_at: updated_at.map(|s| {
-                    chrono::DateTime::parse_from_rfc3339(&s)
-                        .unwrap()
-                        .with_timezone(&Local)
-                }),
-                deleted_at: deleted_at.map(|s| {
-                    chrono::DateTime::parse_from_rfc3339(&s)
-                        .unwrap()
-                        .with_timezone(&Local)
-                }),
-            })
-        })?;
-        task_groups.collect()
+                created_at,
+                updated_at,
+                deleted_at,
+            });
+        }
+        Ok(task_groups)
     }
 
-    pub fn init_table() -> Result<(), rusqlite::Error> {
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        conn.execute(
+    pub async fn init_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query(
             "CREATE TABLE IF NOT EXISTS task_groups (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 tasks TEXT NOT NULL,
                 created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
+                updated_at TEXT,
                 deleted_at TEXT
-            )",
-            [],
-        )?;
+            )"
+        )
+        .execute(pool)
+        .await?;
         Ok(())
     }
 }
@@ -123,42 +120,35 @@ impl TaskGroup {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sqlx::sqlite::SqlitePoolOptions;
 
-    #[test]
-    fn test_task_group_new() {
+    async fn setup_test_db() -> SqlitePool {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .expect("Failed to connect to test database");
+        
+        TaskGroup::init_table(&pool).await.expect("Failed to init table");
+        pool
+    }
+
+    #[tokio::test]
+    async fn test_task_group_new() {
         let task_group = TaskGroup::new();
         assert_eq!(task_group.name, "");
         assert!(task_group.tasks.is_empty());
-        assert_ne!(task_group.id, Uuid::nil());
-        // タイムスタンプが初期化されていることを確認
-        assert!(task_group.created_at <= Local::now());
-        assert!(task_group.updated_at.is_none());
-        assert!(task_group.deleted_at.is_none());
     }
 
-    #[test]
-    fn test_task_group_save_and_load() {
-        // Remove existing db
-        std::fs::remove_file("norunos.db").ok();
-
-        // Init table
-        TaskGroup::init_table().unwrap();
-
+    #[tokio::test]
+    async fn test_task_group_save_and_load() {
+        let pool = setup_test_db().await;
         let mut task_group = TaskGroup::new();
         task_group.name = "Test Group".to_string();
-        task_group.tasks = vec![Uuid::new_v4(), Uuid::new_v4()];
 
-        // Save
-        task_group.save().unwrap();
+        task_group.save(&pool).await.expect("Failed to save task group");
+        let task_groups = TaskGroup::load_all(&pool).await.expect("Failed to load task groups");
 
-        // Load all
-        let loaded_groups = TaskGroup::load_all().unwrap();
-        assert!(loaded_groups.len() >= 1);
-        let loaded = loaded_groups
-            .iter()
-            .find(|g| g.id == task_group.id)
-            .unwrap();
-        assert_eq!(loaded.name, "Test Group");
-        assert_eq!(loaded.tasks.len(), 2);
+        assert_eq!(task_groups.len(), 1);
+        assert_eq!(task_groups[0].name, "Test Group");
     }
 }

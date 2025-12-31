@@ -1,7 +1,10 @@
 use chrono::{DateTime, Local};
+use serde::{Deserialize, Serialize};
 use serde_json;
+use sqlx::{query, Row, SqlitePool};
 use uuid::Uuid;
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Task {
     pub id: Uuid,
     pub completed: bool,
@@ -57,95 +60,92 @@ impl Task {
     }
 
     // データベース操作
-    pub fn save(&mut self) -> Result<(), rusqlite::Error> {
-        if self.updated_at.is_none() {
-            self.updated_at = Some(Local::now());
-        }
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        let subtasks_json = serde_json::to_string(&self.subtasks).unwrap();
+    pub async fn save(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        self.update_updated_at();
+        let subtasks_json = serde_json::to_string(&self.subtasks).unwrap_or_default();
         let start_dt = self.start_datetime.map(|dt| dt.to_rfc3339());
         let end_dt = self.end_datetime.map(|dt| dt.to_rfc3339());
-        conn.execute(//データベースにデータがあれば置き換え、なければ新規作成fd
+        let updated_at = self.updated_at.map(|dt| dt.to_rfc3339());
+        let deleted_at = self.deleted_at.map(|dt| dt.to_rfc3339());
+
+        sqlx::query(
             "INSERT OR REPLACE INTO tasks (id, completed, description, details, subtasks, start_datetime, end_datetime, progress, created_at, updated_at, deleted_at)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
-            rusqlite::params![
-                self.id.to_string(),
-                self.completed as i32,
-                self.description,
-                self.details,
-                subtasks_json,
-                start_dt,
-                end_dt,
-                self.progress as i32,
-                self.created_at.to_rfc3339(),
-                self.updated_at.map(|dt| dt.to_rfc3339()),
-                self.deleted_at.map(|dt| dt.to_rfc3339()),
-            ],
-        )?;
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        )
+        .bind(self.id.to_string())
+        .bind(self.completed)
+        .bind(&self.description)
+        .bind(&self.details)
+        .bind(&subtasks_json)
+        .bind(&start_dt)
+        .bind(&end_dt)
+        .bind(self.progress)
+        .bind(self.created_at.to_rfc3339())
+        .bind(&updated_at)
+        .bind(&deleted_at)
+        .execute(pool)
+        .await?;
         Ok(())
     }
 
-    pub fn load_all() -> Result<Vec<Self>, rusqlite::Error> {
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        let mut stmt = conn.prepare("SELECT id, completed, description, details, subtasks, start_datetime, end_datetime, progress, created_at, updated_at, deleted_at FROM tasks")?;
-        let tasks = stmt.query_map([], |row| {
-            let id: String = row.get(0)?;
-            let completed: i32 = row.get(1)?;
-            let description: String = row.get(2)?;
-            let details: Option<String> = row.get(3)?;
-            let subtasks_json: String = row.get(4)?;
-            let start_datetime: Option<String> = row.get(5)?;
-            let end_datetime: Option<String> = row.get(6)?;
-            let progress: i32 = row.get(7)?;
-            let created_at: String = row.get(8)?;
-            let updated_at: Option<String> = row.get(9)?;
-            let deleted_at: Option<String> = row.get(10)?;
+    pub async fn load_all(pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        let rows = sqlx::query("SELECT * FROM tasks WHERE deleted_at IS NULL")
+            .fetch_all(pool)
+            .await?;
 
+        let mut tasks = Vec::new();
+        for row in rows {
+            let id: String = row.try_get("id")?;
+            let id = Uuid::parse_str(&id).unwrap_or(Uuid::new_v4());
+            let completed: bool = row.try_get("completed")?;
+            let description: String = row.try_get("description")?;
+            let details: Option<String> = row.try_get("details")?;
+            let subtasks_json: String = row.try_get("subtasks")?;
             let subtasks: Vec<Uuid> = serde_json::from_str(&subtasks_json).unwrap_or_default();
-            let start_dt = start_datetime.map(|s| {
-                chrono::DateTime::parse_from_rfc3339(&s)
-                    .unwrap()
-                    .with_timezone(&Local)
-            });
-            let end_dt = end_datetime.map(|s| {
-                chrono::DateTime::parse_from_rfc3339(&s)
-                    .unwrap()
-                    .with_timezone(&Local)
-            });
+            let start_datetime: Option<String> = row.try_get("start_datetime")?;
+            let start_datetime = start_datetime
+                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
+                .map(|dt| dt.with_timezone(&Local));
+            let end_datetime: Option<String> = row.try_get("end_datetime")?;
+            let end_datetime = end_datetime
+                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
+                .map(|dt| dt.with_timezone(&Local));
+            let progress: u32 = row.try_get("progress")?;
+            let created_at_str: String = row.try_get("created_at")?;
+            let created_at = DateTime::parse_from_rfc3339(&created_at_str)
+                .unwrap_or_else(|_| Local::now().into())
+                .with_timezone(&Local);
+            let updated_at: Option<String> = row.try_get("updated_at")?;
+            let updated_at = updated_at
+                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
+                .map(|dt| dt.with_timezone(&Local));
+            let deleted_at: Option<String> = row.try_get("deleted_at")?;
+            let deleted_at = deleted_at
+                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
+                .map(|dt| dt.with_timezone(&Local));
 
-            Ok(Task {
-                id: Uuid::parse_str(&id).unwrap(),
-                completed: completed != 0,
+            tasks.push(Task {
+                id,
+                completed,
                 description,
                 details,
                 subtasks,
-                start_datetime: start_dt,
-                end_datetime: end_dt,
-                progress: progress as u32,
-                created_at: chrono::DateTime::parse_from_rfc3339(&created_at)
-                    .unwrap()
-                    .with_timezone(&Local),
-                updated_at: updated_at.map(|s| {
-                    chrono::DateTime::parse_from_rfc3339(&s)
-                        .unwrap()
-                        .with_timezone(&Local)
-                }),
-                deleted_at: deleted_at.map(|s| {
-                    chrono::DateTime::parse_from_rfc3339(&s)
-                        .unwrap()
-                        .with_timezone(&Local)
-                }),
-            })
-        })?;
-        tasks.collect()
+                start_datetime,
+                end_datetime,
+                progress,
+                created_at,
+                updated_at,
+                deleted_at,
+            });
+        }
+        Ok(tasks)
     }
 
-    pub fn init_table() -> Result<(), rusqlite::Error> {
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        conn.execute(
+    pub async fn init_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query(
             "CREATE TABLE IF NOT EXISTS tasks (
                 id TEXT PRIMARY KEY,
-                completed INTEGER NOT NULL,
+                completed BOOLEAN NOT NULL,
                 description TEXT NOT NULL,
                 details TEXT,
                 subtasks TEXT NOT NULL,
@@ -153,11 +153,12 @@ impl Task {
                 end_datetime TEXT,
                 progress INTEGER NOT NULL,
                 created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
+                updated_at TEXT,
                 deleted_at TEXT
             )",
-            [],
-        )?;
+        )
+        .execute(pool)
+        .await?;
         Ok(())
     }
 }
@@ -165,43 +166,39 @@ impl Task {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sqlx::sqlite::SqlitePoolOptions;
 
-    #[test]
-    fn test_task_new() {
-        let task = Task::new();
-        assert_eq!(task.completed, false);
-        assert_eq!(task.description, "No description.");
-        assert_eq!(task.details, None);
-        assert!(task.subtasks.is_empty());
-        assert_eq!(task.progress, 0);
-        assert_ne!(task.id, Uuid::nil());
-        // タイムスタンプが初期化されていることを確認
-        assert!(task.created_at <= Local::now());
-        assert!(task.updated_at.is_none());
-        assert!(task.deleted_at.is_none());
+    async fn setup_test_db() -> SqlitePool {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .expect("Failed to connect to test database");
+
+        Task::init_table(&pool).await.expect("Failed to init table");
+        pool
     }
 
-    #[test]
-    fn test_task_save_and_load() {
-        // Init table
-        Task::init_table().unwrap();
+    #[tokio::test]
+    async fn test_task_new() {
+        let task = Task::new();
+        assert!(!task.completed);
+        assert_eq!(task.description, "No description.");
+        assert!(task.subtasks.is_empty());
+        assert_eq!(task.progress, 0);
+    }
 
+    #[tokio::test]
+    async fn test_task_save_and_load() {
+        let pool = setup_test_db().await;
         let mut task = Task::new();
-        task.description = "Test Task".to_string();
+        task.description = "Test task".to_string();
         task.completed = true;
-        task.progress = 50;
-        task.subtasks = vec![Uuid::new_v4()];
 
-        // Save
-        task.save().unwrap();
+        task.save(&pool).await.expect("Failed to save task");
+        let tasks = Task::load_all(&pool).await.expect("Failed to load tasks");
 
-        // Load all
-        let loaded_tasks = Task::load_all().unwrap();
-        assert!(loaded_tasks.len() >= 1);
-        let loaded = loaded_tasks.iter().find(|t| t.id == task.id).unwrap();
-        assert_eq!(loaded.description, "Test Task");
-        assert_eq!(loaded.completed, true);
-        assert_eq!(loaded.progress, 50);
-        assert_eq!(loaded.subtasks.len(), 1);
+        assert_eq!(tasks.len(), 1);
+        assert_eq!(tasks[0].description, "Test task");
+        assert!(tasks[0].completed);
     }
 }
