@@ -7,16 +7,18 @@ import NotesView from "./components/Notes/NotesView";
 import SettingsView from "./components/Settings/Settings";
 import ToDoListView from "./components/ToDoList/ToDoList";
 import MindMapView from "./components/MindMap/MindMap";
+import { Task } from "./type";
 
 interface MainFieldProps {
 	currentContent: string;
+	tasks: Task[];
 }
 
-const MainField: React.FC<MainFieldProps> = ({ currentContent }) => {
+const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks }) => {
 	return (
 		<div className="w-full bg-bg-secondary">
 			{currentContent === "To Do List" ? (
-				<ToDoListView />
+				<ToDoListView tasks={tasks} />
 			) : currentContent === "Dashboard" ? (
 				<DashboardView />
 			) : currentContent === "Calender" ? (

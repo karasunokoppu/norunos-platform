@@ -2,12 +2,12 @@ import React from "react";
 import NorunoDatePicker from "../../ui/NorunoDatePicker";
 import NorunoDropdown from "../../ui/NorunoDropdown";
 
-type TaskInputProps = {}
+type TaskInputProps = {};
 
 const TaskInput: React.FC<TaskInputProps> = () => {
 	const [isInputOpen, setIsInputOpen] = React.useState(false);
 	const [description, setDescription] = React.useState("");
-	const [details, setDetails] = React.useState("")
+	const [details, setDetails] = React.useState("");
 	//Start Date
 	const [isSDPOpen, setIsSDPOpen] = React.useState(false);
 	const [startDate, setStartDate] = React.useState("");
