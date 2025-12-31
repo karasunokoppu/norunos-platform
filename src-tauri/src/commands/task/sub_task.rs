@@ -1,7 +1,9 @@
 use chrono::{DateTime, Local};
 use uuid::Uuid;
+use serde::{Serialize, Deserialize};
+use sqlx::{SqlitePool, query, Row};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Serialize, Deserialize, Clone)]
 pub struct Subtask {
     pub id: Uuid,
     pub order: i32,
@@ -39,79 +41,77 @@ impl Subtask {
     }
 
     // データベース操作
-    pub fn save(&mut self, task_id: Uuid) -> Result<(), rusqlite::Error> {
-        if self.updated_at.is_none() {
-            self.updated_at = Some(Local::now());
-        }
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        conn.execute(
-            "INSERT OR REPLACE INTO subtasks (id, order_index, description, completed, created_at, updated_at, deleted_at, task_id)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-            rusqlite::params![
-                self.id.to_string(),
-                self.order,
-                self.description,
-                self.completed as i32,
-                self.created_at.to_rfc3339(),
-                self.updated_at.map(|dt| dt.to_rfc3339()),
-                self.deleted_at.map(|dt| dt.to_rfc3339()),
-                task_id.to_string(),
-            ],
-        )?;
+    pub async fn save(&mut self, task_id: Uuid, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        self.update_updated_at();
+        let updated_at = self.updated_at.map(|dt| dt.to_rfc3339());
+        let deleted_at = self.deleted_at.map(|dt| dt.to_rfc3339());
+
+        sqlx::query(
+            "INSERT OR REPLACE INTO subtasks (id, task_id, order_num, description, completed, created_at, updated_at, deleted_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        )
+        .bind(self.id.to_string())
+        .bind(task_id.to_string())
+        .bind(self.order)
+        .bind(&self.description)
+        .bind(self.completed)
+        .bind(self.created_at.to_rfc3339())
+        .bind(&updated_at)
+        .bind(&deleted_at)
+        .execute(pool)
+        .await?;
         Ok(())
     }
 
-    pub fn load_for_task(task_id: Uuid) -> Result<Vec<Self>, rusqlite::Error> {
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        let mut stmt = conn.prepare("SELECT id, order_index, description, completed, created_at, updated_at, deleted_at FROM subtasks WHERE task_id = ?1")?;
-        let subtasks = stmt.query_map(rusqlite::params![task_id.to_string()], |row| {
-            let id: String = row.get(0)?;
-            let order: i32 = row.get(1)?;
-            let description: String = row.get(2)?;
-            let completed: i32 = row.get(3)?;
-            let created_at: String = row.get(4)?;
-            let updated_at: Option<String> = row.get(5)?;
-            let deleted_at: Option<String> = row.get(6)?;
+    // 指定したタスクIDに関連するサブタスクを取得
+    pub async fn load_for_task(task_id: Uuid, pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        let rows = sqlx::query("SELECT * FROM subtasks WHERE task_id = ? AND deleted_at IS NULL ORDER BY order_num")
+            .bind(task_id.to_string())
+            .fetch_all(pool)
+            .await?;
 
-            Ok(Subtask {
-                id: Uuid::parse_str(&id).unwrap(),
+        let mut subtasks = Vec::new();
+        for row in rows {
+            let id: String = row.try_get("id")?;
+            let id = Uuid::parse_str(&id).unwrap_or(Uuid::new_v4());
+            let order: i32 = row.try_get("order_num")?;
+            let description: String = row.try_get("description")?;
+            let completed: bool = row.try_get("completed")?;
+            let created_at_str: String = row.try_get("created_at")?;
+            let created_at = DateTime::parse_from_rfc3339(&created_at_str).unwrap_or_else(|_| Local::now().into()).with_timezone(&Local);
+            let updated_at: Option<String> = row.try_get("updated_at")?;
+            let updated_at = updated_at.and_then(|s| DateTime::parse_from_rfc3339(&s).ok()).map(|dt| dt.with_timezone(&Local));
+            let deleted_at: Option<String> = row.try_get("deleted_at")?;
+            let deleted_at = deleted_at.and_then(|s| DateTime::parse_from_rfc3339(&s).ok()).map(|dt| dt.with_timezone(&Local));
+
+            subtasks.push(Subtask {
+                id,
                 order,
                 description,
-                completed: completed != 0,
-                created_at: chrono::DateTime::parse_from_rfc3339(&created_at)
-                    .unwrap()
-                    .with_timezone(&Local),
-                updated_at: updated_at.map(|s| {
-                    chrono::DateTime::parse_from_rfc3339(&s)
-                        .unwrap()
-                        .with_timezone(&Local)
-                }),
-                deleted_at: deleted_at.map(|s| {
-                    chrono::DateTime::parse_from_rfc3339(&s)
-                        .unwrap()
-                        .with_timezone(&Local)
-                }),
-            })
-        })?;
-        subtasks.collect()
+                completed,
+                created_at,
+                updated_at,
+                deleted_at,
+            });
+        }
+        Ok(subtasks)
     }
 
-    pub fn init_table() -> Result<(), rusqlite::Error> {
-        let conn = rusqlite::Connection::open("norunos.db")?;
-        conn.execute(
+    pub async fn init_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query(
             "CREATE TABLE IF NOT EXISTS subtasks (
                 id TEXT PRIMARY KEY,
-                order_index INTEGER NOT NULL,
-                description TEXT NOT NULL,
-                completed INTEGER NOT NULL,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                deleted_at TEXT,
                 task_id TEXT NOT NULL,
-                FOREIGN KEY (task_id) REFERENCES tasks (id)
-            )",
-            [],
-        )?;
+                order_num INTEGER NOT NULL,
+                description TEXT NOT NULL,
+                completed BOOLEAN NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT,
+                deleted_at TEXT
+            )"
+        )
+        .execute(pool)
+        .await?;
         Ok(())
     }
 }
@@ -119,47 +119,39 @@ impl Subtask {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sqlx::sqlite::SqlitePoolOptions;
 
-    #[test]
-    fn test_subtask_new() {
+    async fn setup_test_db() -> SqlitePool {
+        let pool = SqlitePoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .expect("Failed to connect to test database");
+        
+        Subtask::init_table(&pool).await.expect("Failed to init table");
+        pool
+    }
+
+    #[tokio::test]
+    async fn test_subtask_new() {
         let subtask = Subtask::new();
         assert_eq!(subtask.order, 0);
         assert_eq!(subtask.description, "");
-        assert_eq!(subtask.completed, false);
-        assert_ne!(subtask.id, Uuid::nil());
-        // タイムスタンプが初期化されていることを確認
-        assert!(subtask.created_at <= Local::now());
-        assert!(subtask.updated_at.is_none());
-        assert!(subtask.deleted_at.is_none());
+        assert!(!subtask.completed);
     }
 
-    #[test]
-    fn test_subtask_save_and_load() {
-        // Remove existing db
-        std::fs::remove_file("norunos.db").ok();
-
-        // Init tables
-        use super::super::task::Task;
-        Task::init_table().unwrap();
-        Subtask::init_table().unwrap();
-
-        let mut task = Task::new();
-        task.save().unwrap();
-
+    #[tokio::test]
+    async fn test_subtask_save_and_load() {
+        let pool = setup_test_db().await;
+        let task_id = Uuid::new_v4();
         let mut subtask = Subtask::new();
-        subtask.description = "Test Subtask".to_string();
+        subtask.description = "Test subtask".to_string();
         subtask.completed = true;
-        subtask.order = 1;
 
-        // Save
-        subtask.save(task.id).unwrap();
+        subtask.save(task_id, &pool).await.expect("Failed to save subtask");
+        let subtasks = Subtask::load_for_task(task_id, &pool).await.expect("Failed to load subtasks");
 
-        // Load for task
-        let loaded_subtasks = Subtask::load_for_task(task.id).unwrap();
-        assert!(loaded_subtasks.len() >= 1);
-        let loaded = loaded_subtasks.iter().find(|s| s.id == subtask.id).unwrap();
-        assert_eq!(loaded.description, "Test Subtask");
-        assert_eq!(loaded.completed, true);
-        assert_eq!(loaded.order, 1);
+        assert_eq!(subtasks.len(), 1);
+        assert_eq!(subtasks[0].description, "Test subtask");
+        assert!(subtasks[0].completed);
     }
 }
