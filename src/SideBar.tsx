@@ -14,9 +14,9 @@ const SideBar: React.FC<SideBarProps> = ({
 	const [isSideBarOpened, setIsSideBarOpened] = React.useState(true);
 	const contents = [
 		"To Do List",
+		"Gantt Chart",
 		"Dashboard",
 		"Calender",
-		"Gantt Chart",
 		"Notes",
 		"Books",
 		"MindMap",
@@ -24,8 +24,8 @@ const SideBar: React.FC<SideBarProps> = ({
 	]; //TODO Sample contents[Content管理用の方とかを実装する]
 
 	const mainCss =
-		"bg-bg-primary h-svh border-r-2 border-r-accent-primary text-text-primary flex flex-col justify-content-center px-2 pb-2" +
-		(isSideBarOpened ? " w-1/10" : " w-fit");
+		"bg-bg-primary h-svh border-r-2 border-r-accent-primary text-text-primary flex flex-col justify-content-center px-2 pb-2 shrink-0 transition-all duration-300" +
+		(isSideBarOpened ? " w-40" : " w-16");
 	const buttonCss =
 		" h-10 w-full flex flex-row justify-start items-center hover:bg-bg-hover hover:text-text-secondary " +
 		(isSideBarOpened ? "" : "px-0");
@@ -57,9 +57,9 @@ const SideBar: React.FC<SideBarProps> = ({
 				>
 					<div className="px-2">
 						{content === "To Do List" && "📋"}
+						{content === "Gantt Chart" && "🕓"}
 						{content === "Dashboard" && "📊"}
 						{content === "Calender" && "📅"}
-						{content === "Gantt Chart" && "🕓"}
 						{content === "Notes" && "📝"}
 						{content === "Books" && "📚"}
 						{content === "MindMap" && "🧠"}

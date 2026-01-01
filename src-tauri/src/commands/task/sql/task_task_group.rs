@@ -1,14 +1,11 @@
-use chrono::{DateTime, Local};
-use serde::{Deserialize, Serialize};
-use serde_json;
-use sqlx::{query, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
 pub async fn init_rela_task_task_group_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS rela_task_task_group (
             task_group_id TEXT NOT NULL,
-            task_id TEXT NOT NULL,
+            task_id TEXT NOT NULL
         )",
     )
     .execute(pool)

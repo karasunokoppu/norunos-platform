@@ -1,8 +1,8 @@
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
-use serde_json;
-use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
+
+use crate::commands::task::sub_task::Subtask;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Task {
@@ -10,7 +10,7 @@ pub struct Task {
     pub completed: bool,
     pub description: String,
     pub details: Option<String>,
-    // pub subtasks: Vec<Uuid>,
+    pub subtasks: Vec<Subtask>,
     //ガントチャート
     pub start_datetime: Option<DateTime<Local>>,
     pub end_datetime: Option<DateTime<Local>>,
@@ -28,7 +28,7 @@ impl Task {
             completed: false,
             description: "No description.".to_string(),
             details: None,
-            // subtasks: Vec::new(),
+            subtasks: Vec::new(),
             start_datetime: None,
             end_datetime: None,
             progress: 0,
@@ -47,6 +47,7 @@ impl Task {
     // }
 
     // メタ情報更新
+    #[allow(dead_code)]
     pub fn set_created_at(&mut self) {
         self.created_at = Local::now();
     }

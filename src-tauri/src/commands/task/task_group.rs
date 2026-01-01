@@ -1,7 +1,5 @@
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
-use serde_json;
-use sqlx::{query, Row, SqlitePool};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -26,15 +24,18 @@ impl TaskGroup {
         }
     }
 
+    #[allow(dead_code)]
     pub fn add_task(&mut self, task_id: Uuid) {
         self.tasks.push(task_id);
     }
 
+    #[allow(dead_code)]
     pub fn remove_task(&mut self, task_id: Uuid) {
         self.tasks.retain(|&id| id != task_id);
     }
 
     // メタ情報更新
+    #[allow(dead_code)]
     pub fn set_created_at(&mut self) {
         self.created_at = Local::now();
     }

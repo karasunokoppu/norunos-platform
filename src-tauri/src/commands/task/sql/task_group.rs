@@ -1,11 +1,10 @@
 use chrono::{DateTime, Local};
-use serde::{Deserialize, Serialize};
-use serde_json;
-use sqlx::{query, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
 use crate::commands::task::{
-    sql::task_task_group::get_task_id_from_task_group_id, task_group::TaskGroup,
+    sql::task_task_group::{get_task_id_from_task_group_id, init_rela_task_task_group_table},
+    task_group::TaskGroup,
 };
 
 pub async fn init_task_group_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
@@ -28,6 +27,7 @@ pub async fn save_task_group(
     task_group: &mut TaskGroup,
 ) -> Result<(), sqlx::Error> {
     init_task_group_table(pool).await?;
+    init_rela_task_task_group_table(pool).await?;
     task_group.update_updated_at();
     let updated_at = task_group.updated_at.map(|dt| dt.to_rfc3339());
     let deleted_at = task_group.deleted_at.map(|dt| dt.to_rfc3339());
@@ -48,28 +48,11 @@ pub async fn save_task_group(
     Ok(())
 }
 
-pub async fn update_task_group_name(
-    pool: &SqlitePool,
-    task_group: &mut TaskGroup,
-) -> Result<(), sqlx::Error> {
-    task_group.update_updated_at();
-    let updated_at = task_group.updated_at.map(|dt| dt.to_rfc3339());
-
-    sqlx::query(
-        "
-        INSERT OR REPLACE INTO task_groups (id, name, updated_at)
-        VALUES (?, ?, ?)
-    ",
-    )
-    .bind(&task_group.id.to_string())
-    .bind(&task_group.name)
-    .bind(&updated_at)
-    .execute(pool)
-    .await?;
-    Ok(())
-}
-
 pub async fn load_all(pool: &SqlitePool) -> Result<Vec<TaskGroup>, sqlx::Error> {
+    // Ensure tables exist before querying to avoid "no such table" errors on startup
+    init_task_group_table(pool).await?;
+    init_rela_task_task_group_table(pool).await?;
+
     let rows = sqlx::query("SELECT * FROM task_groups WHERE deleted_at IS NULL")
         .fetch_all(pool)
         .await?;
@@ -92,9 +75,7 @@ pub async fn load_all(pool: &SqlitePool) -> Result<Vec<TaskGroup>, sqlx::Error> 
             .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
             .map(|dt| dt.with_timezone(&Local));
 
-        let tasks: Vec<Uuid> = get_task_id_from_task_group_id(&pool, &task_group_id)
-            .await
-            .unwrap();
+        let tasks: Vec<Uuid> = get_task_id_from_task_group_id(&pool, &task_group_id).await?;
 
         task_groups.push(TaskGroup {
             id,
