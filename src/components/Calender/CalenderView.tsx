@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Task } from "../../type";
+import { ReadingActivity } from "../../type/calendar";
 import { getMemos, saveMemo, deleteMemo, CalendarMemo } from "../../tauri/calendar_api";
+import { invoke } from "@tauri-apps/api/core";
 
 interface CalenderViewProps {
 	tasks?: Task[];
@@ -11,6 +13,7 @@ const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 	const [currentDate, setCurrentDate] = useState(new Date());
 	const [memos, setMemos] = useState<CalendarMemo[]>([]);
+	const [readingActivities, setReadingActivities] = useState<ReadingActivity[]>([]);
 
 	// Memo Dialog State
 	const [selectedDate, setSelectedDate] = useState<string | null>(null); // "YYYY-MM-DD"
@@ -33,6 +36,10 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 		const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
 
 		getMemos(startStr, endStr).then(setMemos).catch(console.error);
+
+		invoke<ReadingActivity[]>("get_reading_activities", { startDate: startStr, endDate: endStr })
+			.then(setReadingActivities)
+			.catch(console.error);
 	}, [year, month]);
 
 	const calendarGrid = useMemo(() => {
@@ -141,11 +148,19 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 							</div>
 
 							<div className="flex-1 overflow-y-auto overflow-x-hidden text-xs flex flex-col gap-1 scrollbar-hide">
-								{memo && (
-									<div className="bg-bg-tertiary text-text-primary px-1 rounded truncate shadow-sm italic border-l-2 border-accent-secondary" title={memo.content}>
-										{memo.content}
+								{memos.find(m => m.date === cell.dateStr) && (
+									<div className="bg-bg-tertiary text-text-primary px-1 rounded truncate shadow-sm italic border-l-2 border-accent-secondary" title={memos.find(m => m.date === cell.dateStr)?.content}>
+										{memos.find(m => m.date === cell.dateStr)?.content}
 									</div>
 								)}
+								{readingActivities
+									.filter(ra => ra.date === cell.dateStr)
+									.map(ra => (
+										<div key={ra.memo_id} className="bg-green-100 text-green-800 px-1 rounded truncate shadow-sm text-[10px]" title={`📖 ${ra.book_title} p.${ra.start_page}-${ra.end_page}`}>
+											📖 {ra.book_title} p.{ra.start_page}-{ra.end_page}
+										</div>
+									))
+								}
 								{dayTasks.map(t => (
 									<div key={t.id} className="bg-accent-light text-accent-secondary px-1 rounded truncate shadow-sm" title={t.description}>
 										{t.description}
@@ -158,24 +173,26 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 			</div>
 
 			{/* Memo Dialog */}
-			{isDialogOpen && (
-				<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-					<div className="bg-bg-primary p-6 rounded-lg shadow-xl w-96 border border-border-primary">
-						<h3 className="text-lg font-bold mb-4">Memo: {selectedDate}</h3>
-						<textarea
-							className="w-full h-32 bg-bg-secondary text-text-primary border border-border-primary rounded p-2 mb-4 focus:outline-none focus:border-accent-primary resize-none"
-							value={memoContent}
-							onChange={e => setMemoContent(e.target.value)}
-							placeholder="Enter memo..."
-						/>
-						<div className="flex justify-end gap-2">
-							<button onClick={() => setIsDialogOpen(false)} className="px-4 py-2 bg-bg-secondary rounded hover:bg-bg-hover border border-border-secondary">Cancel</button>
-							<button onClick={handleSaveMemo} className="px-4 py-2 bg-accent-secondary text-text-on-accent rounded hover:opacity-90">Save</button>
+			{
+				isDialogOpen && (
+					<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+						<div className="bg-bg-primary p-6 rounded-lg shadow-xl w-96 border border-border-primary">
+							<h3 className="text-lg font-bold mb-4">Memo: {selectedDate}</h3>
+							<textarea
+								className="w-full h-32 bg-bg-secondary text-text-primary border border-border-primary rounded p-2 mb-4 focus:outline-none focus:border-accent-primary resize-none"
+								value={memoContent}
+								onChange={e => setMemoContent(e.target.value)}
+								placeholder="Enter memo..."
+							/>
+							<div className="flex justify-end gap-2">
+								<button onClick={() => setIsDialogOpen(false)} className="px-4 py-2 bg-bg-secondary rounded hover:bg-bg-hover border border-border-secondary">Cancel</button>
+								<button onClick={handleSaveMemo} className="px-4 py-2 bg-accent-secondary text-text-on-accent rounded hover:opacity-90">Save</button>
+							</div>
 						</div>
 					</div>
-				</div>
-			)}
-		</div>
+				)
+			}
+		</div >
 	);
 };
 

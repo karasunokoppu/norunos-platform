@@ -28,6 +28,16 @@ async fn setup_pool(app_handle: &tauri::AppHandle) -> SqlitePool {
         .expect("Failed to connect to database")
 }
 
+pub async fn init_db(pool: &SqlitePool) {
+    commands::books::db::init_books_table(pool)
+        .await
+        .expect("Failed to init books table");
+
+    commands::mindmap::db::init_mind_map_table(pool)
+        .await
+        .expect("Failed to init mind_maps table");
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let rt = tokio::runtime::Runtime::new().unwrap();
@@ -36,6 +46,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .setup(move |app| {
             let pool = rt.block_on(setup_pool(&app.handle()));
+            rt.block_on(init_db(&pool));
             app.manage(AppState { pool });
             Ok(())
         })
@@ -58,6 +69,20 @@ pub fn run() {
             commands::notes::fs::create_folder,
             commands::notes::fs::delete_item,
             commands::notes::fs::rename_item,
+            commands::books::commands::get_books,
+            commands::books::commands::create_book,
+            commands::books::commands::update_book,
+            commands::books::commands::delete_book,
+            commands::books::commands::get_book_memos,
+            commands::books::commands::create_book_memo,
+            commands::books::commands::update_book_memo,
+            commands::books::commands::delete_book_memo,
+            commands::books::commands::read_book_memo_file,
+            commands::books::commands::get_reading_activities,
+            commands::mindmap::commands::get_mind_maps,
+            commands::mindmap::commands::create_mind_map,
+            commands::mindmap::commands::update_mind_map,
+            commands::mindmap::commands::delete_mind_map,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
