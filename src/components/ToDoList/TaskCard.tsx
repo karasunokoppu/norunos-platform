@@ -34,6 +34,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
         }
     };
 
+    const handleSubtaskUpdate = async (subtasks: any[]) => {
+        const updatedTask = { ...task, subtasks };
+        try {
+            await updateTask(updatedTask);
+            onRefresh();
+        } catch (error) {
+            console.error("Failed to update task subtasks", error);
+        }
+    };
+
     return (
         <div className="w-full bg-bg-primary text-text-primary border-b border-border-primary">
             <div className="flex flex-row items-center p-2">
@@ -69,13 +79,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
                     削除
                 </button>
             </div>
-            {task.subtasks.length != 0 ? (
+            {isOpened && (
                 <SubTaskCard
                     subtasks={task.subtasks}
                     isOpened={isOpened}
+                    onUpdate={handleSubtaskUpdate}
                 />
-            ) : (
-                <div>-</div>
             )}
 
         </div>

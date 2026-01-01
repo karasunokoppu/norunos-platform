@@ -59,6 +59,11 @@ pub async fn save_task(pool: &SqlitePool, task: &mut Task) -> Result<(), sqlx::E
     // Be safe and call init
     crate::commands::task::sub_task::Subtask::init_table(pool).await?;
 
+    crate::commands::task::sub_task::Subtask::init_table(pool).await?;
+
+    // Clear existing relations to handle deletions
+    task_subtask::delete_rela_task_subtask_by_task_id(pool, task.id.to_string()).await?;
+
     for subtask in &mut task.subtasks {
         subtask.save(pool).await?;
         task_subtask::save_rela_task_subtask(pool, task.id.to_string(), subtask.id.to_string())

@@ -26,3 +26,14 @@ pub async fn save_rela_task_subtask(
         .await?;
     Ok(())
 }
+
+pub async fn delete_rela_task_subtask_by_task_id(
+    pool: &SqlitePool,
+    task_id: String,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM rela_task_subtask WHERE task_id = ?")
+        .bind(task_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import NorunoContextMenu, { ContextMenuItem } from "../../ui/NorunoContextMenu";
 import { TaskGroup } from "../../type";
 import {
     createTaskGroup,
@@ -24,6 +25,11 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
     const [newGroupName, setNewGroupName] = useState("");
     const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState("");
+    const [contextMenu, setContextMenu] = useState<{
+        x: number;
+        y: number;
+        group: TaskGroup;
+    } | null>(null);
 
     // const fetchGroups = async () => { ... } // Removed
     // useEffect(() => { fetchGroups(); }, []); // Removed
@@ -52,8 +58,8 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
         }
     };
 
-    const handleDelete = async (group: TaskGroup, e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleDelete = async (group: TaskGroup, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
         if (confirm(`Delete group "${group.name}"?`)) {
             try {
                 await deleteTaskGroup(group);
@@ -64,6 +70,34 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
             }
         }
     };
+
+    const handleContextMenu = (e: React.MouseEvent, group: TaskGroup) => {
+        e.preventDefault();
+        setContextMenu({ x: e.clientX, y: e.clientY, group });
+    };
+
+    const handleCloseContextMenu = () => {
+        setContextMenu(null);
+    };
+
+    const contextMenuItems: ContextMenuItem[] = contextMenu
+        ? [
+            {
+                label: "Rename",
+                onClick: () => {
+                    setEditingGroupId(contextMenu.group.id);
+                    setEditingName(contextMenu.group.name);
+                },
+            },
+            {
+                label: "Delete",
+                onClick: () => {
+                    handleDelete(contextMenu.group);
+                },
+                danger: true,
+            },
+        ]
+        : [];
 
     return (
         <div className="w-64 bg-bg-primary h-full border-r border-border-primary flex flex-col p-4">
@@ -88,6 +122,7 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
                             : "text-text-primary hover:bg-bg-secondary"
                             }`}
                         onClick={() => onSelectGroup(group.id)}
+                        onContextMenu={(e) => handleContextMenu(e, group)}
                     >
                         {editingGroupId === group.id ? (
                             <input
@@ -124,6 +159,15 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
                     </div>
                 ))}
             </div>
+
+            {contextMenu && (
+                <NorunoContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    items={contextMenuItems}
+                    onClose={handleCloseContextMenu}
+                />
+            )}
 
             {isCreating ? (
                 <div className="mt-4">
