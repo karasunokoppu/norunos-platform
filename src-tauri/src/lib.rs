@@ -1,9 +1,9 @@
 mod commands;
 
-use sqlx::SqlitePool;
-use sqlx::sqlite::SqliteConnectOptions;
-use tauri::Manager;
 use crate::commands::task_commands::*;
+use sqlx::sqlite::SqliteConnectOptions;
+use sqlx::SqlitePool;
+use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -28,13 +28,15 @@ async fn setup_pool(app_handle: &tauri::AppHandle) -> SqlitePool {
     let options = SqliteConnectOptions::new()
         .filename(&db_path)
         .create_if_missing(true);
-    SqlitePool::connect_with(options).await.expect("Failed to connect to database")
+    SqlitePool::connect_with(options)
+        .await
+        .expect("Failed to connect to database")
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let rt = tokio::runtime::Runtime::new().unwrap();
-    
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(move |app| {
