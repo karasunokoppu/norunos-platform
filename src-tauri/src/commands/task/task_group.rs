@@ -4,9 +4,9 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TaskGroup {
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
-    pub tasks: Vec<String>,
+    pub tasks: Vec<Uuid>,
     pub created_at: DateTime<Local>,
     pub updated_at: Option<DateTime<Local>>,
     pub deleted_at: Option<DateTime<Local>>,
@@ -15,7 +15,7 @@ pub struct TaskGroup {
 impl TaskGroup {
     pub fn new() -> Self {
         TaskGroup {
-            id: Uuid::new_v4().to_string(),
+            id: Uuid::new_v4(),
             name: "".to_string(),
             tasks: Vec::new(),
             created_at: Local::now(),
