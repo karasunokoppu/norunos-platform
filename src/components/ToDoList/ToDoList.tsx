@@ -7,6 +7,7 @@ import { getTaskGroups } from "../../tauri/to_do_list_api";
 
 interface ToDoListViewProps {
 	tasks: Task[];
+<<<<<<< HEAD
 	onRefresh: () => void;
 }
 
@@ -43,6 +44,20 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 					<TaskInput onRefresh={onRefresh} taskGroups={taskGroups} />
 					<TaskList tasks={filteredTasks} onRefresh={onRefresh} />
 				</div>
+=======
+	onCreateTask: (task: Task) => void;
+	onUpdateTask: (task: Task) => void;
+	onDeleteTask: (task: Task) => void;
+	onUpdateTasks: (tasks: Task[]) => void;
+}
+
+const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onCreateTask, onUpdateTask, onDeleteTask, onUpdateTasks }) => {
+	return (
+		<div className="h-full w-full flex justify-center items-start py-8">
+			<div className="h-full w-full max-w-4xl flex flex-col justify-start items-center space-y-6">
+				<TaskInput onCreateTask={onCreateTask} />
+				<TaskList tasks={tasks} onUpdateTask={onUpdateTask} onDeleteTask={onDeleteTask} onUpdateTasks={onUpdateTasks} />
+>>>>>>> 050c4bf92ad55825b52c8128619d1e1e296e04d2
 			</div>
 		</div>
 	);

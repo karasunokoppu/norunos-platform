@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Task, CreateTaskPayload, TaskGroup } from "../type";
+import type { Task, Subtask } from "../type";
 
 export async function getTasks(): Promise<Task[]> {
     try {
@@ -10,66 +10,47 @@ export async function getTasks(): Promise<Task[]> {
     }
 }
 
-export async function createTask(payload: CreateTaskPayload): Promise<Task[]> {
-    try {
-        return await invoke<Task[]>("create_task", { taskDto: payload });
-    } catch (e) {
+export async function createTask(task: Task): Promise<Task[]> {
+    try{
+        return await invoke<Task[]>("create_task", { task });
+    }catch(e){
         console.error("createTask failed", e);
         throw e;
     }
 }
 
 export async function updateTask(task: Task): Promise<Task[]> {
-    try {
+    try{
         return await invoke<Task[]>("update_task", { task });
-    } catch (e) {
+    }catch(e){
         console.error("updateTask failed", e);
         throw e;
     }
 }
 
 export async function deleteTask(task: Task): Promise<Task[]> {
-    try {
+    try{
         return await invoke<Task[]>("delete_task", { task });
-    } catch (e) {
+    }catch(e){
         console.error("deleteTask failed", e);
         throw e;
     }
 }
 
-// Task Group APIs
-export async function getTaskGroups(): Promise<TaskGroup[]> {
-    try {
-        return await invoke<TaskGroup[]>("get_task_groups", {});
-    } catch (e) {
-        console.error("getTaskGroups failed", e);
+export async function addSubtask(taskId: string, subtask: Subtask): Promise<Task[]> {
+    try{
+        return await invoke<Task[]>("add_subtask", { taskId, subtask });
+    }catch(e){
+        console.error("addSubtask failed", e);
         throw e;
     }
 }
 
-export async function createTaskGroup(name: string): Promise<TaskGroup[]> {
-    try {
-        return await invoke<TaskGroup[]>("create_task_group", { name });
-    } catch (e) {
-        console.error("createTaskGroup failed", e);
-        throw e;
-    }
-}
-
-export async function updateTaskGroup(group: TaskGroup): Promise<TaskGroup[]> {
-    try {
-        return await invoke<TaskGroup[]>("update_task_group", { group });
-    } catch (e) {
-        console.error("updateTaskGroup failed", e);
-        throw e;
-    }
-}
-
-export async function deleteTaskGroup(group: TaskGroup): Promise<TaskGroup[]> {
-    try {
-        return await invoke<TaskGroup[]>("delete_task_group", { group });
-    } catch (e) {
-        console.error("deleteTaskGroup failed", e);
+export async function updateSubtask(subtask: Subtask): Promise<Task[]> {
+    try{
+        return await invoke<Task[]>("update_subtask", { subtask });
+    }catch(e){
+        console.error("updateSubtask failed", e);
         throw e;
     }
 }
