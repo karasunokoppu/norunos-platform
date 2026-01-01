@@ -109,7 +109,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, isOpen, onClose, 
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-4 py-2 text-sm bg-accent-primary text-text-on-accent hover:bg-accent-primary/90 rounded"
+                        className="px-4 py-2 text-sm bg-accent-secondary text-text-on-accent hover:bg-accent-secondary/90 rounded"
                     >
                         Save
                     </button>

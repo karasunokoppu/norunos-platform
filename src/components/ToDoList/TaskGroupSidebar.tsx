@@ -148,12 +148,12 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
                                 >
                                     {group.name}
                                 </span>
-                                <button
+                                {/* <button
                                     className="hidden group-hover:block text-red-500 hover:text-red-700 ml-2"
                                     onClick={(e) => handleDelete(group, e)}
                                 >
                                     ×
-                                </button>
+                                </button> */}
                             </>
                         )}
                     </div>
@@ -182,7 +182,7 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
                     <div className="flex space-x-2">
                         <button
                             onClick={handleCreate}
-                            className="bg-accent-primary text-text-on-accent px-3 py-1 rounded text-sm"
+                            className="bg-accent-secondary text-text-on-accent px-3 py-1 rounded text-sm"
                         >
                             Add
                         </button>

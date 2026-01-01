@@ -48,6 +48,9 @@ pub fn run() {
             create_task_group,
             update_task_group,
             delete_task_group,
+            commands::calendar::memo::get_memos,
+            commands::calendar::memo::save_memo,
+            commands::calendar::memo::delete_memo,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

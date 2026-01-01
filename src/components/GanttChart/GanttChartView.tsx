@@ -120,7 +120,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks }) => {
 		<div className="flex flex-col h-full w-full bg-bg-secondary text-text-primary overflow-hidden">
 			{/* Header */}
 			<div className="flex flex-row border-b border-border-primary bg-bg-primary z-20 shrink-0 h-[40px]">
-				<div className="flex-shrink-0 flex items-center pl-4 font-bold border-r border-border-primary" style={{ width: SIDEBAR_WIDTH }}>
+				<div className="shrink-0 flex items-center pl-4 font-bold border-r border-border-primary" style={{ width: SIDEBAR_WIDTH }}>
 					Task Name
 				</div>
 				<div className="flex-1 overflow-hidden" ref={headerRef}>
@@ -128,8 +128,9 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks }) => {
 						{Array.from({ length: totalDays }).map((_, i) => {
 							const d = new Date(minDate);
 							d.setDate(d.getDate() + i);
+							const isToday = new Date().toDateString() === d.toDateString();
 							return (
-								<div key={i} className="flex-shrink-0 flex justify-center items-center border-r border-border-secondary text-xs" style={{ width: PIXELS_PER_DAY }}>
+								<div key={i} className={`shrink-0 flex justify-center items-center border-r border-border-secondary text-xs ${isToday ? "bg-accent-light text-accent-secondary font-bold" : ""}`} style={{ width: PIXELS_PER_DAY }}>
 									{formatDate(d)}
 								</div>
 							);
@@ -141,7 +142,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks }) => {
 			{/* Body */}
 			<div className="flex flex-row flex-1 min-h-0 relative">
 				{/* Sidebar */}
-				<div className="flex-shrink-0 overflow-hidden border-r border-border-primary bg-bg-primary" style={{ width: SIDEBAR_WIDTH }} ref={sidebarRef}>
+				<div className="shrink-0 overflow-hidden border-r border-border-primary bg-bg-primary" style={{ width: SIDEBAR_WIDTH }} ref={sidebarRef}>
 					{groupedData.map(group => (
 						<div key={group.id}>
 							{/* Group Header */}
@@ -164,9 +165,14 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks }) => {
 					<div className="relative" style={{ width: chartWidth, minHeight: totalContentHeight }}>
 						{/* Grid */}
 						<div className="absolute top-0 left-0 bottom-0 right-0 flex pointer-events-none h-full">
-							{Array.from({ length: totalDays }).map((_, i) => (
-								<div key={i} className="border-r border-border-secondary flex-shrink-0 h-full" style={{ width: PIXELS_PER_DAY }} />
-							))}
+							{Array.from({ length: totalDays }).map((_, i) => {
+								const d = new Date(minDate);
+								d.setDate(d.getDate() + i);
+								const isToday = new Date().toDateString() === d.toDateString();
+								return (
+									<div key={i} className={`border-r border-border-secondary shrink-0 h-full ${isToday ? "bg-accent-light opacity-70" : ""}`} style={{ width: PIXELS_PER_DAY }} />
+								);
+							})}
 						</div>
 
 						{/* Content */}

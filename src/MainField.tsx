@@ -23,7 +23,7 @@ const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks, onRefresh 
 			) : currentContent === "Dashboard" ? (
 				<DashboardView tasks={tasks} />
 			) : currentContent === "Calender" ? (
-				<CalenderView />
+				<CalenderView tasks={tasks} />
 			) : currentContent === "Gantt Chart" ? (
 				<GanttChartView tasks={tasks} />
 			) : currentContent === "Notes" ? (
