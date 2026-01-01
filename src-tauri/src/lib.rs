@@ -51,6 +51,13 @@ pub fn run() {
             commands::calendar::memo::get_memos,
             commands::calendar::memo::save_memo,
             commands::calendar::memo::delete_memo,
+            commands::notes::fs::get_notes_tree,
+            commands::notes::fs::read_note,
+            commands::notes::fs::save_note,
+            commands::notes::fs::create_note,
+            commands::notes::fs::create_folder,
+            commands::notes::fs::delete_item,
+            commands::notes::fs::rename_item,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
