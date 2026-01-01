@@ -1,10 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import NorunoDatePicker from "../../ui/NorunoDatePicker";
 import NorunoDropdown from "../../ui/NorunoDropdown";
+import { createTask } from "../../tauri/to_do_list_api";
+import { CreateTaskPayload } from "../../type";
 
-type TaskInputProps = {};
+interface TaskInputProps {
+	onRefresh: () => void;
+	taskGroups: { id: string, name: string }[];
+}
 
-const TaskInput: React.FC<TaskInputProps> = () => {
+const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 	const [isInputOpen, setIsInputOpen] = React.useState(false);
 	const [description, setDescription] = React.useState("");
 	const [details, setDetails] = React.useState("");
@@ -15,8 +20,38 @@ const TaskInput: React.FC<TaskInputProps> = () => {
 	const [isEDPOpen, setIsEDPOpen] = React.useState(false);
 	const [endDate, setEndDate] = React.useState("");
 	//Group
-	const testGroup = ["TG01", "TG02", "TG03", "TG04", "TG05"];
-	const [taskGroup, setTaskGroup] = React.useState(testGroup[1]);
+	// const [taskGroups, setTaskGroups] = useState<{ id: string, name: string }[]>([]); // Removed internal state
+	const [selectedGroupId, setSelectedGroupId] = useState("");
+
+	useEffect(() => {
+		if (taskGroups.length > 0 && !selectedGroupId) {
+			setSelectedGroupId(taskGroups[0].id);
+		}
+	}, [taskGroups]);
+
+	const handleCreateTask = async () => {
+		if (!description) return;
+
+		const newTaskPayload: CreateTaskPayload = {
+			description: description,
+			details: details,
+			start_datetime: startDate ? new Date(startDate).toISOString() : undefined,
+			end_datetime: endDate ? new Date(endDate).toISOString() : undefined,
+			group_id: selectedGroupId || undefined,
+		};
+
+		try {
+			await createTask(newTaskPayload);
+			onRefresh();
+			setDescription("");
+			setDetails("");
+			setStartDate("");
+			setEndDate("");
+			setIsInputOpen(false);
+		} catch (e) {
+			console.error("Failed to create task", e);
+		}
+	};
 
 	const buttonCss =
 		"bg-accent-secondary text-text-on-accent hover:bg-accent-hover px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-secondary";
@@ -36,7 +71,7 @@ const TaskInput: React.FC<TaskInputProps> = () => {
 						onFocus={() => setIsInputOpen(true)}
 						className={`${inputCss} flex-1`}
 					/>
-					<button type="button" className={buttonCss}>
+					<button type="button" className={buttonCss} onClick={handleCreateTask}>
 						タスク追加
 					</button>
 				</div>
@@ -90,11 +125,14 @@ const TaskInput: React.FC<TaskInputProps> = () => {
 									グループ:
 								</label>
 								<NorunoDropdown
-									value={taskGroup}
-									onChange={setTaskGroup}
-									options={testGroup.map((group) => ({
-										value: group,
-										label: group,
+									value={taskGroups.find(g => g.id === selectedGroupId)?.name || ""}
+									onChange={(name) => {
+										const group = taskGroups.find(g => g.name === name);
+										if (group) setSelectedGroupId(group.id);
+									}}
+									options={taskGroups.map(g => ({
+										value: g.name,
+										label: g.name
 									}))}
 								/>
 							</div>

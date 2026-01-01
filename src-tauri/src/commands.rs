@@ -1,4 +1,5 @@
-pub mod app;
-// pub mod memo;
+pub mod books;
+pub mod calendar;
+pub mod mindmap;
+pub mod notes;
 pub mod task;
-pub mod task_commands;
