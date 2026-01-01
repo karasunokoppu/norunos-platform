@@ -17,7 +17,7 @@ interface MainFieldProps {
 
 const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks, onRefresh }) => {
 	return (
-		<div className="w-full bg-bg-secondary">
+		<div className="h-full flex-1 overflow-hidden bg-bg-secondary">
 			{currentContent === "To Do List" ? (
 				<ToDoListView tasks={tasks} onRefresh={onRefresh} />
 			) : currentContent === "Dashboard" ? (

@@ -24,7 +24,7 @@ function App() {
 	}, []);
 
 	return (
-		<main className="h-full w-full flex flex-row gap-0">
+		<main className="h-svh w-full flex flex-row gap-0">
 			<SideBar currentContent={currentContent} onSelectContent={setContent} />
 			<MainField currentContent={currentContent} tasks={tasks} onRefresh={refreshTasks} />
 		</main>

@@ -1,8 +1,10 @@
 import type React from "react";
 import { Task } from "../../type";
-import { useState } from "react";
 import SubTaskCard from "./SubTaskCard";
 import { updateTask, deleteTask } from "../../tauri/to_do_list_api";
+import NorunoContextMenu, { ContextMenuItem } from "../../ui/NorunoContextMenu";
+import { useState } from "react";
+import EditTaskDialog from "./EditTaskDialog";
 
 interface TaskCardProps {
     task: Task;
@@ -11,6 +13,8 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
     const [isOpened, setIsOpened] = useState(false);
+    const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const handleToggleComplete = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const updatedTask = { ...task, completed: e.target.checked };
@@ -22,8 +26,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
         }
     };
 
-    const handleDelete = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleDelete = async (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
         if (confirm("Are you sure you want to delete this task?")) {
             try {
                 await deleteTask(task);
@@ -32,7 +36,37 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
                 console.error("Failed to delete task", error);
             }
         }
+    }
+
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setContextMenu({ x: e.clientX, y: e.clientY });
     };
+
+    const handleEdit = () => {
+        setIsEditDialogOpen(true);
+    };
+
+    const handleSaveEdit = async (updatedTask: Task) => {
+        try {
+            await updateTask(updatedTask);
+            onRefresh();
+        } catch (error) {
+            console.error("Failed to update task details", error);
+        }
+    };
+
+    const contextMenuItems: ContextMenuItem[] = [
+        {
+            label: "Edit",
+            onClick: handleEdit,
+        },
+        {
+            label: "Delete",
+            onClick: () => handleDelete(),
+            danger: true,
+        },
+    ];;
 
     const handleSubtaskUpdate = async (subtasks: any[]) => {
         const updatedTask = { ...task, subtasks };
@@ -45,7 +79,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
     };
 
     return (
-        <div className="w-full bg-bg-primary text-text-primary border-b border-border-primary">
+        <div
+            className="w-full bg-bg-primary text-text-primary border-b border-border-primary"
+            onContextMenu={handleContextMenu}
+        >
             <div className="flex flex-row items-center p-2">
                 <input
                     type="checkbox"
@@ -73,7 +110,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
                     </div>
                 </div>
                 <button
-                    onClick={handleDelete}
+                    onClick={(e) => handleDelete(e)}
                     className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
                 >
                     削除
@@ -86,6 +123,22 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
                     onUpdate={handleSubtaskUpdate}
                 />
             )}
+
+            {contextMenu && (
+                <NorunoContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    items={contextMenuItems}
+                    onClose={() => setContextMenu(null)}
+                />
+            )}
+
+            <EditTaskDialog
+                task={task}
+                isOpen={isEditDialogOpen}
+                onClose={() => setIsEditDialogOpen(false)}
+                onSave={handleSaveEdit}
+            />
 
         </div>
     );
