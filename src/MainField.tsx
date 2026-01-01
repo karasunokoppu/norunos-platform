@@ -12,15 +12,16 @@ import { Task } from "./type";
 interface MainFieldProps {
 	currentContent: string;
 	tasks: Task[];
+	onRefresh: () => void;
 }
 
-const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks }) => {
+const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks, onRefresh }) => {
 	return (
 		<div className="w-full bg-bg-secondary">
 			{currentContent === "To Do List" ? (
-				<ToDoListView tasks={tasks} />
+				<ToDoListView tasks={tasks} onRefresh={onRefresh} />
 			) : currentContent === "Dashboard" ? (
-				<DashboardView />
+				<DashboardView tasks={tasks} />
 			) : currentContent === "Calender" ? (
 				<CalenderView />
 			) : currentContent === "Gantt Chart" ? (

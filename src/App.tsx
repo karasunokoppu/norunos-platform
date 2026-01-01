@@ -3,25 +3,19 @@ import { useEffect, useState } from "react";
 import MainField from "./MainField";
 import SideBar from "./SideBar";
 import { Task } from "./type";
+import { getTasks } from "./tauri/to_do_list_api";
 
 function App() {
 	const [currentContent, setContent] = useState<string>("To Do List");
-	const [tasks, setTasks] = useState<Task[]>([
-		{
-			id: "xxxxxx",
-			description: "test",
-			details: "test details",
-			start_date: "yyyy/mm/dd",
-			end_date: "yyyy/mm/dd",
-			group: "test group",
-			completed: false,
-			subtasks: [{
-				id:"subtask id",
-				description: "subtask description",
-				completed: false,
-			}]
-		},
-	]);
+	const [tasks, setTasks] = useState<Task[]>([]);
+
+	const refreshTasks = () => {
+		getTasks().then(setTasks).catch(console.error);
+	};
+
+	useEffect(() => {
+		refreshTasks();
+	}, []);
 
 	useEffect(() => {
 		const handler = (e: MouseEvent) => e.preventDefault();
@@ -32,7 +26,7 @@ function App() {
 	return (
 		<main className="h-full w-full flex flex-row gap-0">
 			<SideBar currentContent={currentContent} onSelectContent={setContent} />
-			<MainField currentContent={currentContent} tasks={tasks} />
+			<MainField currentContent={currentContent} tasks={tasks} onRefresh={refreshTasks} />
 		</main>
 	);
 }

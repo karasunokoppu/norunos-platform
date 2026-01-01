@@ -8,7 +8,7 @@ pub async fn init_rela_task_task_group_table(pool: &SqlitePool) -> Result<(), sq
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS rela_task_task_group (
             task_group_id TEXT NOT NULL,
-            task_id TEXT NOT NULL,
+            task_id TEXT NOT NULL
         )",
     )
     .execute(pool)

@@ -1,6 +1,7 @@
 mod commands;
 
-use crate::commands::task::task_commands::*;
+use crate::commands::task::sql::task_commands::*;
+use crate::commands::task::sql::task_group_commands::*;
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::SqlitePool;
 use tauri::Manager;
@@ -43,6 +44,10 @@ pub fn run() {
             get_tasks,
             update_task,
             delete_task,
+            get_task_groups,
+            create_task_group,
+            update_task_group,
+            delete_task_group,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
