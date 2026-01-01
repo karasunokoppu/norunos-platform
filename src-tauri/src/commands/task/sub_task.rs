@@ -1,6 +1,6 @@
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
-use sqlx::{query, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
 #[derive(PartialEq, Serialize, Deserialize, Clone)]
@@ -15,6 +15,7 @@ pub struct Subtask {
 }
 
 impl Subtask {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Subtask {
             id: Uuid::new_v4(),
@@ -28,6 +29,7 @@ impl Subtask {
     }
 
     // メタ情報更新
+    #[allow(dead_code)]
     pub fn set_created_at(&mut self) {
         self.created_at = Local::now();
     }
@@ -36,6 +38,7 @@ impl Subtask {
         self.updated_at = Some(Local::now());
     }
 
+    #[allow(dead_code)]
     pub fn set_deleted(&mut self) {
         self.deleted_at = Some(Local::now());
     }

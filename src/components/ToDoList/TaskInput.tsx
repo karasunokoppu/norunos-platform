@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import NorunoDatePicker from "../../ui/NorunoDatePicker";
 import NorunoDropdown from "../../ui/NorunoDropdown";
-import { createTask, getTaskGroups } from "../../tauri/to_do_list_api";
+import { createTask } from "../../tauri/to_do_list_api";
 import { CreateTaskPayload } from "../../type";
 
 interface TaskInputProps {

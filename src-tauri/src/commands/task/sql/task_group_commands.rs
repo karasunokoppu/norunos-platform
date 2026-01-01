@@ -1,7 +1,6 @@
 use crate::commands::task::sql::task_group;
 use crate::commands::task::task_group::TaskGroup;
 use crate::AppState;
-use uuid::Uuid;
 
 #[tauri::command]
 pub async fn get_task_groups(state: tauri::State<'_, AppState>) -> Result<Vec<TaskGroup>, String> {

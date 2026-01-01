@@ -53,7 +53,7 @@ const BooksView = () => {
 		fetchBooks();
 	}, []);
 
-	const handleSave = (book: Book) => {
+	const handleSave = () => {
 		fetchBooks();
 	};
 

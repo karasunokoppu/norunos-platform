@@ -43,6 +43,7 @@ pub fn read_memo_content(path_str: &str) -> Result<String, String> {
     fs::read_to_string(path).map_err(|e| e.to_string())
 }
 
+#[allow(dead_code)]
 pub fn delete_file(path_str: &str) -> Result<(), String> {
     let path = PathBuf::from(path_str);
     if path.exists() {

@@ -1,4 +1,4 @@
-use crate::commands::books::db::{self, Book, ReadingMemo};
+use crate::commands::books::db::{Book, ReadingMemo};
 use crate::commands::books::fs;
 use crate::AppState;
 use chrono::Local;

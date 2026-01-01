@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { CreateBookDto, Book } from "../../type/books";
+import { Book } from "../../type/books";
 
 interface BookDialogProps {
     isOpen: boolean;

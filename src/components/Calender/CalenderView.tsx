@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Task } from "../../type";
 import { ReadingActivity } from "../../type/calendar";
-import { getMemos, saveMemo, deleteMemo, CalendarMemo } from "../../tauri/calendar_api";
+import { getMemos, saveMemo, CalendarMemo } from "../../tauri/calendar_api";
 import { invoke } from "@tauri-apps/api/core";
 
 interface CalenderViewProps {
@@ -130,9 +130,6 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 						// Compare YYYY-MM-DD
 						return t.end_datetime.startsWith(cell.dateStr!); // ISO String YYYY-MM-DD...
 					});
-
-					// Find memo
-					const memo = memos.find(m => m.date === cell.dateStr);
 
 					return (
 						<div

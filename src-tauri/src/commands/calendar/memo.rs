@@ -1,6 +1,6 @@
 use crate::AppState;
 use serde::{Deserialize, Serialize};
-use sqlx::{query, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CalendarMemo {

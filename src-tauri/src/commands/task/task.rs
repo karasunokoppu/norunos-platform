@@ -1,7 +1,5 @@
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
-use serde_json;
-use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
 use crate::commands::task::sub_task::Subtask;
@@ -49,6 +47,7 @@ impl Task {
     // }
 
     // メタ情報更新
+    #[allow(dead_code)]
     pub fn set_created_at(&mut self) {
         self.created_at = Local::now();
     }

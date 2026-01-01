@@ -1,7 +1,5 @@
 use chrono::{DateTime, Local};
-use serde::{Deserialize, Serialize};
-use serde_json;
-use sqlx::{query, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
 use crate::commands::task::{
@@ -45,27 +43,6 @@ pub async fn save_task_group(
     .bind(&task_group.created_at.to_rfc3339())
     .bind(&updated_at)
     .bind(&deleted_at)
-    .execute(pool)
-    .await?;
-    Ok(())
-}
-
-pub async fn update_task_group_name(
-    pool: &SqlitePool,
-    task_group: &mut TaskGroup,
-) -> Result<(), sqlx::Error> {
-    task_group.update_updated_at();
-    let updated_at = task_group.updated_at.map(|dt| dt.to_rfc3339());
-
-    sqlx::query(
-        "
-        INSERT OR REPLACE INTO task_groups (id, name, updated_at)
-        VALUES (?, ?, ?)
-    ",
-    )
-    .bind(&task_group.id.to_string())
-    .bind(&task_group.name)
-    .bind(&updated_at)
     .execute(pool)
     .await?;
     Ok(())

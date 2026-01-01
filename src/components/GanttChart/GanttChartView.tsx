@@ -7,7 +7,6 @@ interface GanttChartViewProps {
 }
 
 const PIXELS_PER_DAY = 50;
-const HEADER_HEIGHT = 40;
 const ROW_HEIGHT = 40;
 const SIDEBAR_WIDTH = 250;
 
@@ -62,7 +61,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks }) => {
 	}, [validTasks, taskGroups]);
 
 	// 3. Determine timeline range
-	const { minDate, maxDate, totalDays } = useMemo(() => {
+	const { minDate, totalDays } = useMemo(() => {
 		const allTasks = groupedData.flatMap(g => g.tasks);
 		if (allTasks.length === 0) {
 			const today = new Date();

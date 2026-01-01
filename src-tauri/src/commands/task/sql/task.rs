@@ -1,7 +1,5 @@
 use chrono::{DateTime, Local};
-use serde::{Deserialize, Serialize};
-use serde_json;
-use sqlx::{query, Row, SqlitePool};
+use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
 use crate::commands::task::sql::task_subtask;

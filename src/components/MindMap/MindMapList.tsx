@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { MindMap } from "../../type/mindmap";
-import { Plus, Trash2, Edit2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 interface MindMapViewProps {
     onOpenMap: (map: MindMap) => void;

@@ -106,7 +106,7 @@ const MindMapEditor = ({ map, onBack }: MindMapEditorProps) => {
 
     // Simple drag-to-add node helper (optional) or context menu to add node could go here.
     // For MVP: Double click to add node.
-    const onNodeDoubleClick = useCallback((event: React.MouseEvent, node: Node) => {
+    const onNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
         setEditingNode(node);
         setEditLabel(typeof node.data.label === 'string' ? node.data.label : "");
         setIsEditOpen(true);
@@ -202,11 +202,9 @@ const MindMapEditor = ({ map, onBack }: MindMapEditorProps) => {
 };
 
 // Helper component to access ReactFlow instance for adding nodes
-import { useReactFlow, Panel } from '@xyflow/react';
+import { Panel } from '@xyflow/react';
 
 const PanelToAddNode = ({ setNodes }: { setNodes: any }) => {
-    const { screenToFlowPosition } = useReactFlow();
-
     const addNode = () => {
         const id = crypto.randomUUID();
         const newNode: Node = {
