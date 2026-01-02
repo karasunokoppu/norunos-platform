@@ -40,13 +40,21 @@ pub async fn init_db(pool: &SqlitePool) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(move |app| {
-            let pool = rt.block_on(setup_pool(&app.handle()));
-            rt.block_on(init_db(&pool));
+            let pool = tauri::async_runtime::block_on(setup_pool(&app.handle()));
+            tauri::async_runtime::block_on(init_db(&pool));
+            tauri::async_runtime::block_on(
+                commands::notification_scheduler::init_notification_log_table(&pool),
+            )
+            .expect("Failed to init notification log");
+            tauri::async_runtime::spawn(commands::notification_scheduler::run_scheduler(
+                app.handle().clone(),
+                pool.clone(),
+            ));
+
             app.manage(AppState { pool });
             Ok(())
         })
@@ -83,6 +91,7 @@ pub fn run() {
             commands::mindmap::commands::create_mind_map,
             commands::mindmap::commands::update_mind_map,
             commands::mindmap::commands::delete_mind_map,
+            commands::notification::send_notification,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

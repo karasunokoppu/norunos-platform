@@ -7,7 +7,7 @@ interface GanttChartViewProps {
 	onRefresh?: () => void;
 }
 
-const PIXELS_PER_DAY = 50;
+
 const ROW_HEIGHT = 40;
 const SIDEBAR_WIDTH = 250;
 
@@ -21,7 +21,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 	const [pixelsPerDay, setPixelsPerDay] = useState(50);
 	const [showDependencies, setShowDependencies] = useState(true);
 	const [showInazuma, setShowInazuma] = useState(false);
-	const [hoveredTask, setHoveredTask] = useState<string | null>(null);
+
 
 	useEffect(() => {
 		getTaskGroups().then(setTaskGroups).catch(console.error);
@@ -310,7 +310,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 	// 5. Generate Lines
 	const dependencyLines = useMemo(() => {
 		if (!showDependencies) return [];
-		const lines: JSX.Element[] = [];
+		const lines: React.JSX.Element[] = [];
 
 		groupedData.forEach(group => {
 			group.tasks.forEach(task => {
