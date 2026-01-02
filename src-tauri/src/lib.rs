@@ -47,10 +47,10 @@ pub fn run() {
             let pool = tauri::async_runtime::block_on(setup_pool(&app.handle()));
             tauri::async_runtime::block_on(init_db(&pool));
             tauri::async_runtime::block_on(
-                commands::notification_scheduler::init_notification_log_table(&pool),
+                commands::notification::scheduler::init_notification_log_table(&pool),
             )
             .expect("Failed to init notification log");
-            tauri::async_runtime::spawn(commands::notification_scheduler::run_scheduler(
+            tauri::async_runtime::spawn(commands::notification::scheduler::run_scheduler(
                 app.handle().clone(),
                 pool.clone(),
             ));

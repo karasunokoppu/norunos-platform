@@ -1,3 +1,5 @@
+pub mod scheduler;
+
 #[tauri::command]
 pub fn send_notification(
     app: tauri::AppHandle,

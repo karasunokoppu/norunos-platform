@@ -3,7 +3,7 @@ use sqlx::SqlitePool;
 use std::sync::Arc;
 use tokio::time::{self, interval};
 
-use crate::commands::notification::send_notification;
+use super::send_notification;
 use crate::commands::task::sql::task::load_all;
 
 // Initialize the log table
