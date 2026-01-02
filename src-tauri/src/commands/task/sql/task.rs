@@ -68,6 +68,21 @@ pub async fn save_task(pool: &SqlitePool, task: &mut Task) -> Result<(), sqlx::E
             .await?;
     }
 
+    crate::commands::task::sql::task_dependency::init_task_dependency_table(pool).await?;
+    crate::commands::task::sql::task_dependency::delete_dependencies_for_task(
+        pool,
+        &task.id.to_string(),
+    )
+    .await?;
+    for dep_id in &task.dependencies {
+        crate::commands::task::sql::task_dependency::save_dependency(
+            pool,
+            &task.id.to_string(),
+            dep_id,
+        )
+        .await?;
+    }
+
     Ok(())
 }
 
@@ -118,6 +133,12 @@ pub async fn load_all(pool: &SqlitePool) -> Result<Vec<Task>, sqlx::Error> {
             updated_at,
             deleted_at,
             subtasks: Subtask::load_for_task(id, pool).await.unwrap_or_default(),
+            dependencies: crate::commands::task::sql::task_dependency::load_dependencies_for_task(
+                pool,
+                &id.to_string(),
+            )
+            .await
+            .unwrap_or_default(),
         });
     }
     Ok(tasks)

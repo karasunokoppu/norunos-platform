@@ -13,6 +13,7 @@ export interface Task {
 	created_at: string;
 	updated_at?: string;
 	deleted_at?: string;
+	dependencies?: string[];
 	// group: string; // Removed as it is not in the current Rust struct
 }
 
