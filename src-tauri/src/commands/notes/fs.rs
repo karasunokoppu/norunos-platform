@@ -13,31 +13,6 @@ pub struct FileNode {
 const NOTES_DIR_NAME: &str = "NorunosNotes";
 
 fn get_notes_dir() -> PathBuf {
-    // For simplicity, let's use the App Data directory or Document directory.
-    // However, Rust side getting "Documents" folder might require `directories` crate or tauri API.
-    // Let's rely on a base path relative to the app or a fixed logic.
-    // Or better, let's assume we store it in the AppData directory for now to avoid permission headaches
-    // unless configured otherwise. User said "Documents/NorunosNotes".
-    // Getting standard directories in Rust:
-    // We can use `tauri::path::BaseDirectory`.
-    // For now, let's use the simple approach of storing it alongside the database in AppData,
-    // or try to resolve user's Document folder if possible.
-    // Given the constraints and setup, let's stick to AppData/NorunosNotes for guaranteed access,
-    // or try to use a hardcoded path if user really wants "Documents".
-
-    // Changing strategy: Let's pass the AppHandle or resolve it via `dirs` crate if available?
-    // `dirs` is not in Cargo.toml.
-    // We can use `app_handle.path().document_dir()`.
-
-    // Since we are in a command, we can accept `app_handle` but `files` logic might be cleaner if standalone.
-    // Let's implement helper to get path via tauri context if possible, or just default to AppData for V1.
-    // User specifically mentioned "Documents/NorunosNotes".
-
-    // We will attempt to use the standard directories.
-    // But since adding crates is annoying, let's try to infer from environment or just use a safe place.
-    // Actually, `dirs` crate is very standard. Check Cargo.toml?
-    // If not, we'll punt to AppData for safety unless we want to try `std::env::home_dir` (deprecated) or `env::var("HOME")`.
-
     if let Ok(home) = std::env::var("HOME") {
         PathBuf::from(home).join("Documents").join(NOTES_DIR_NAME)
     } else {
@@ -190,15 +165,6 @@ fn find_backlinks_recursive(
                 if ext == "md" {
                     // Read file content
                     let content = fs::read_to_string(&path).unwrap_or_default();
-                    // Simple check for [[target_name]] or [[target_name|
-                    // Note: This is case-sensitive and simple string matching.
-                    // ideally we'd parse markdown, but for now this is efficient enough.
-                    // We need to handle potential aliases or lack of .md extension in link.
-                    // target_name passed from frontend usually doesn't have .md for the link check,
-                    // or we should strip it.
-
-                    // Let's assume target_name is the Note Name (e.g. "My Note").
-                    // Links look like [[My Note]] or [[My Note|Alias]].
 
                     let link_pattern_1 = format!("[[{}]]", target_name);
                     let link_pattern_2 = format!("[[{}|", target_name);
@@ -226,9 +192,6 @@ pub async fn get_backlinks(target: String) -> Result<Vec<String>, String> {
         target.clone()
     };
 
-    // We also need to handle path separators if target is passed as full path?
-    // The frontend usually passes currentFile which is full path.
-    // We need to extract just the file stem (filename without extension).
     let path_obj = PathBuf::from(&search_term);
     let file_stem = path_obj
         .file_stem()
@@ -239,4 +202,98 @@ pub async fn get_backlinks(target: String) -> Result<Vec<String>, String> {
     find_backlinks_recursive(&root, &file_stem, &mut backlinks)?;
 
     Ok(backlinks)
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GraphNode {
+    id: String,
+    name: String,
+    val: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GraphLink {
+    source: String,
+    target: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GraphData {
+    nodes: Vec<GraphNode>,
+    links: Vec<GraphLink>,
+}
+
+fn collect_graph_data_recursive(
+    dir: &Path,
+    nodes: &mut Vec<GraphNode>,
+    links: &mut Vec<GraphLink>,
+) -> Result<(), String> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+
+    let entries = fs::read_dir(dir).map_err(|e| e.to_string())?;
+    for entry in entries {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            collect_graph_data_recursive(&path, nodes, links)?;
+        } else {
+            if let Some(ext) = path.extension() {
+                if ext == "md" {
+                    let file_stem = path.file_stem().unwrap().to_string_lossy().to_string();
+                    let content = fs::read_to_string(&path).unwrap_or_default();
+
+                    nodes.push(GraphNode {
+                        id: file_stem.clone(),
+                        name: file_stem.clone(),
+                        val: 1, // Default size
+                    });
+
+                    // Parse links: [[Link]] or [[Link|Alias]]
+                    let mut start_idx = 0;
+                    while let Some(open) = content[start_idx..].find("[[") {
+                        let actual_open = start_idx + open;
+                        if let Some(close) = content[actual_open..].find("]]") {
+                            let actual_close = actual_open + close;
+                            let link_content = &content[actual_open + 2..actual_close];
+
+                            // Handle aliases [[Target|Alias]]
+                            let target = if let Some(pipe) = link_content.find('|') {
+                                &link_content[..pipe]
+                            } else {
+                                link_content
+                            };
+
+                            // Trim and add link
+                            let target_clean = target.trim().to_string();
+                            if !target_clean.is_empty() {
+                                links.push(GraphLink {
+                                    source: file_stem.clone(),
+                                    target: target_clean,
+                                });
+                            }
+
+                            start_idx = actual_close + 2;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_graph_data() -> Result<GraphData, String> {
+    let root = ensure_notes_dir()?;
+    let mut nodes = Vec::new();
+    let mut links = Vec::new();
+
+    collect_graph_data_recursive(&root, &mut nodes, &mut links)?;
+
+    Ok(GraphData { nodes, links })
 }

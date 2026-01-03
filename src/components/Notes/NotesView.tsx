@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import NotesSidebar from "./NotesSidebar";
 import NoteEditor from "./NoteEditor";
+import GraphView from "./GraphView";
 import { getNotesTree, readNote, createNote, createFolder, deleteItem, renameItem, FileNode } from "../../tauri/notes_api";
 import FolderSelectDialog from "./FolderSelectDialog";
+import { Network } from "lucide-react";
 
 const NotesView: React.FC = () => {
 	const [fileTree, setFileTree] = useState<FileNode[]>([]);
@@ -10,6 +12,7 @@ const NotesView: React.FC = () => {
 	const [fileContent, setFileContent] = useState<string>("");
 	const [showFolderDialog, setShowFolderDialog] = useState(false);
 	const [pendingNoteName, setPendingNoteName] = useState<string | null>(null);
+	const [showGraph, setShowGraph] = useState(false);
 
 	const refreshTree = async () => {
 		try {
@@ -25,6 +28,7 @@ const NotesView: React.FC = () => {
 	}, []);
 
 	const handleSelectFile = async (path: string) => {
+		setShowGraph(false);
 		try {
 			const content = await readNote(path);
 			setCurrentFile(path);
@@ -85,14 +89,11 @@ const NotesView: React.FC = () => {
 	};
 
 	const handleNavigate = async (target: string) => {
-		// Clean up target just in case, though remark-wiki-link usually gives clean href
-		const cleanTarget = target.replace(/^internal:\/\//, ""); // We will set hrefTemplate to internal://
-
+		const cleanTarget = target.replace(/^internal:\/\//, "");
 		const existingPath = findPathByName(fileTree, cleanTarget);
 		if (existingPath) {
 			handleSelectFile(existingPath);
 		} else {
-			// Open dialog instead of immediate confirm
 			setPendingNoteName(cleanTarget);
 			setShowFolderDialog(true);
 		}
@@ -100,7 +101,6 @@ const NotesView: React.FC = () => {
 
 	const handleFolderSelect = async (folderPath: string) => {
 		if (!pendingNoteName) return;
-
 		setShowFolderDialog(false);
 		try {
 			const newPath = await createNote(folderPath, pendingNoteName);
@@ -111,8 +111,6 @@ const NotesView: React.FC = () => {
 			const errorMsg = String(e);
 			if (errorMsg.includes("exists")) {
 				await refreshTree();
-				// Try to find it again
-				// Since we know the folderPath and name, we can guess the path, but let's just search
 				const tree = await getNotesTree();
 				setFileTree(tree);
 				const found = findPathByName(tree, pendingNoteName);
@@ -131,7 +129,6 @@ const NotesView: React.FC = () => {
 		if (!newName) return;
 		try {
 			const newPath = await renameItem(path, newName);
-			// If renaming current file, update state
 			if (currentFile === path) {
 				setCurrentFile(newPath);
 			}
@@ -152,12 +149,26 @@ const NotesView: React.FC = () => {
 				onDelete={handleDelete}
 				onRename={handleRename}
 			/>
-			<NoteEditor
-				path={currentFile}
-				initialContent={fileContent}
-				onSaveSuccess={() => { }}
-				onNavigate={handleNavigate}
-			/>
+			<div className="flex-1 flex flex-col h-full bg-bg-secondary overflow-hidden relative">
+				<button
+					onClick={() => setShowGraph(!showGraph)}
+					className={`absolute top-2 right-4 z-10 p-2 rounded-full shadow-lg ${showGraph ? "bg-accent-primary text-white" : "bg-bg-tertiary text-text-primary hover:bg-bg-hover"}`}
+					title="Toggle Graph View"
+				>
+					<Network size={20} />
+				</button>
+
+				{showGraph ? (
+					<GraphView onNavigate={handleNavigate} />
+				) : (
+					<NoteEditor
+						path={currentFile}
+						initialContent={fileContent}
+						onSaveSuccess={() => { }}
+						onNavigate={handleNavigate}
+					/>
+				)}
+			</div>
 			<FolderSelectDialog
 				isOpen={showFolderDialog}
 				folders={fileTree}

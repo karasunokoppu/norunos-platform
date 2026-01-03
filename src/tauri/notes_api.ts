@@ -38,3 +38,23 @@ export async function renameItem(path: string, newName: string): Promise<string>
 export async function getBacklinks(target: string): Promise<string[]> {
     return await invoke("get_backlinks", { target });
 }
+
+export interface GraphNode {
+    id: string;
+    name: string;
+    val: number;
+}
+
+export interface GraphLink {
+    source: string;
+    target: string;
+}
+
+export interface GraphData {
+    nodes: GraphNode[];
+    links: GraphLink[];
+}
+
+export async function getGraphData(): Promise<GraphData> {
+    return await invoke("get_graph_data");
+}
