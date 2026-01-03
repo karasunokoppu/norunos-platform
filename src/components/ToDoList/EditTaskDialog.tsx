@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Task } from "../../type";
+import { Task, TaskGroup } from "../../type";
 import NorunoDatePicker from "../../ui/NorunoDatePicker";
+import NorunoDropdown from "../../ui/NorunoDropdown";
+import { moveTaskToGroup } from "../../tauri/to_do_list_api";
 
 interface EditTaskDialogProps {
     task: Task;
     isOpen: boolean;
     onClose: () => void;
     onSave: (updatedTask: Task) => void;
+    taskGroups: TaskGroup[];
 }
 
-const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, isOpen, onClose, onSave }) => {
+const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, isOpen, onClose, onSave, taskGroups }) => {
     const [description, setDescription] = useState(task.description);
     // Format: "YYYY-MM-DD HH:mm" for internal state and DatePicker
     const formatToPicker = (isoString?: string) => {
@@ -21,16 +24,25 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, isOpen, onClose, 
     const [endDate, setEndDate] = useState(formatToPicker(task.end_datetime));
     const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
     const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
+    const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+    const [initialGroupId, setInitialGroupId] = useState<string>("");
 
     useEffect(() => {
         if (isOpen) {
             setDescription(task.description);
             setStartDate(formatToPicker(task.start_datetime));
             setEndDate(formatToPicker(task.end_datetime));
-        }
-    }, [isOpen, task]);
 
-    const handleSave = () => {
+            // Find current group
+            const currentGroup = taskGroups.find(g => g.tasks.includes(task.id));
+            if (currentGroup) {
+                setSelectedGroupId(currentGroup.id);
+                setInitialGroupId(currentGroup.id);
+            }
+        }
+    }, [isOpen, task, taskGroups]);
+
+    const handleSave = async () => {
         // Convert "YYYY-MM-DD HH:mm" (Local) to ISO 8601 with timezone (UTC) e.g. "2024-01-01T03:00:00.000Z"
         const formatToISO = (pickerDate: string) => {
             if (!pickerDate) return undefined;
@@ -45,6 +57,17 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, isOpen, onClose, 
             start_datetime: formatToISO(startDate),
             end_datetime: formatToISO(endDate),
         };
+
+        // Handle Group Move
+        if (selectedGroupId && selectedGroupId !== initialGroupId) {
+            try {
+                await moveTaskToGroup(task.id, selectedGroupId);
+            } catch (e) {
+                console.error("Failed to move task to group", e);
+                alert("Failed to move task group");
+            }
+        }
+
         onSave(updatedTask);
         onClose();
     };
@@ -63,6 +86,24 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, isOpen, onClose, 
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         className="w-full bg-bg-secondary border border-border-primary rounded px-3 py-2 focus:outline-none focus:border-accent-primary"
+                    />
+                </div>
+
+                {/* import NorunoDropdown from "../../ui/NorunoDropdown";
+
+                // ... (existing imports, but remove line 4 moveTaskToGroup if not needed or keep it)
+                // actually we need to add the import at the top, I'll use a larger block or separate edit if needed.
+                // But wait, allow_multiple is false. I should do a cleaner replace.
+
+                // Let's replace the whole file content block for imports + the usage area. */}
+
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">Task Group</label>
+                    <NorunoDropdown
+                        options={taskGroups.map(g => ({ label: g.name, value: g.id }))}
+                        value={selectedGroupId}
+                        onChange={(value) => setSelectedGroupId(value)}
+                        placeholder="Select Group"
                     />
                 </div>
 

@@ -1,13 +1,14 @@
 import React from "react";
-import { Task } from "../../type";
+import { Task, TaskGroup } from "../../type";
 import TaskCard from "./TaskCard";
 
 interface TaskListProps {
 	tasks: Task[];
 	onRefresh: () => void;
+	taskGroups: TaskGroup[];
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, onRefresh }) => {
+const TaskList: React.FC<TaskListProps> = ({ tasks, onRefresh, taskGroups }) => {
 	const pendingTasks = tasks.filter(t => !t.completed);
 	const completedTasks = tasks.filter(t => t.completed);
 
@@ -15,7 +16,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onRefresh }) => {
 		<div className="w-full space-y-6">
 			<div className="space-y-2">
 				{pendingTasks.map((task: Task) => (
-					<TaskCard key={task.id} task={task} onRefresh={onRefresh} />
+					<TaskCard key={task.id} task={task} onRefresh={onRefresh} taskGroups={taskGroups} />
 				))}
 			</div>
 
@@ -27,7 +28,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onRefresh }) => {
 					</summary>
 					<div className="mt-2 space-y-2 pl-4 border-l-2 border-border-primary">
 						{completedTasks.map((task: Task) => (
-							<TaskCard key={task.id} task={task} onRefresh={onRefresh} />
+							<TaskCard key={task.id} task={task} onRefresh={onRefresh} taskGroups={taskGroups} />
 						))}
 					</div>
 				</details>

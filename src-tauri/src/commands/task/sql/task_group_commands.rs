@@ -1,4 +1,5 @@
 use crate::commands::task::sql::task_group;
+use crate::commands::task::sql::task_task_group;
 use crate::commands::task::task_group::TaskGroup;
 use crate::AppState;
 
@@ -51,4 +52,24 @@ pub async fn delete_task_group(
     task_group::load_all(&state.pool)
         .await
         .map_err(|e| e.to_string())
+}
+
+/// Moves a task from its current group to a new group.
+///
+/// This involves:
+/// 1. Removing the existing relationship from `rela_task_task_group`.
+/// 2. Creating a new relationship with the target `group_id`.
+#[tauri::command]
+pub async fn move_task_to_group(
+    state: tauri::State<'_, AppState>,
+    task_id: String,
+    group_id: String,
+) -> Result<(), String> {
+    task_task_group::delete_rela_task_task_group_by_task_id(&state.pool, task_id.clone())
+        .await
+        .map_err(|e| e.to_string())?;
+    task_task_group::save_rela_task_task_group(&state.pool, group_id, task_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }

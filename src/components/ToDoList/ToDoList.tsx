@@ -41,7 +41,7 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 			<div className="h-full flex-1 flex justify-center items-start py-8 overflow-y-auto">
 				<div className="w-full max-w-4xl flex flex-col justify-start items-center space-y-6 px-4">
 					<TaskInput onRefresh={onRefresh} taskGroups={taskGroups} />
-					<TaskList tasks={filteredTasks} onRefresh={onRefresh} />
+					<TaskList tasks={filteredTasks} onRefresh={onRefresh} taskGroups={taskGroups} />
 				</div>
 			</div>
 		</div>

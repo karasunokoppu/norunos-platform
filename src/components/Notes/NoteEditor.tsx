@@ -1,23 +1,42 @@
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { saveNote } from "../../tauri/notes_api";
+import wikiLinkPlugin from "remark-wiki-link";
+import { saveNote, getBacklinks } from "../../tauri/notes_api";
+import { Network } from "lucide-react";
 
 interface NoteEditorProps {
     path: string | null;
     initialContent: string;
     onSaveSuccess: () => void;
+    onNavigate?: (target: string) => void;
+    onToggleGraph?: () => void;
 }
 
-const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuccess }) => {
+const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuccess, onNavigate, onToggleGraph }) => {
     const [content, setContent] = useState(initialContent);
     const [isDirty, setIsDirty] = useState(false);
+    const [backlinks, setBacklinks] = useState<string[]>([]);
 
     // Reset content when path changes
     useEffect(() => {
         setContent(initialContent);
         setIsDirty(false);
     }, [path, initialContent]);
+
+    // Fetch backlinks when path changes
+    useEffect(() => {
+        if (path) {
+            getBacklinks(path)
+                .then(setBacklinks)
+                .catch((err) => {
+                    console.error("Failed to fetch backlinks:", err);
+                    setBacklinks([]);
+                });
+        } else {
+            setBacklinks([]);
+        }
+    }, [path]);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setContent(e.target.value);
@@ -50,11 +69,26 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
 
     if (!path) {
         return (
-            <div className="flex-1 flex justify-center items-center text-text-tertiary bg-bg-secondary h-full">
-                Select a note to edit
+            <div className="flex-1 flex flex-col h-full bg-bg-secondary text-text-primary">
+                <div className="h-10 border-b border-border-primary bg-bg-primary flex items-center px-4 justify-end">
+                    {onToggleGraph && (
+                        <button
+                            onClick={onToggleGraph}
+                            className="p-1 rounded hover:bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors"
+                            title="Graph View"
+                        >
+                            <Network size={18} />
+                        </button>
+                    )}
+                </div>
+                <div className="flex-1 flex justify-center items-center text-text-tertiary">
+                    Select a note to edit
+                </div>
             </div>
         );
     }
+
+    // ... (rest of component)
 
     return (
         <div className="flex-1 flex flex-col h-full bg-bg-secondary text-text-primary">
@@ -66,65 +100,121 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
                         {isDirty ? "Unsaved" : "Saved"}
                     </span>
                     <button onClick={handleSave} className="bg-accent-secondary text-white px-3 py-1 rounded text-xs hover:bg-opacity-80">Save</button>
+                    {onToggleGraph && (
+                        <button
+                            onClick={onToggleGraph}
+                            className="p-1 rounded hover:bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors"
+                            title="Graph View"
+                        >
+                            <Network size={18} />
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Split View */}
             <div className="flex-1 flex flex-row overflow-hidden">
                 {/* Editor */}
-                <div className="flex-1 h-full border-r border-border-primary">
+                <div className="flex-1 h-full border-r border-border-primary flex flex-col">
                     <textarea
-                        className="w-full h-full bg-bg-secondary text-text-primary p-4 outline-none resize-none font-mono text-sm leading-relaxed"
+                        className="flex-1 w-full bg-bg-secondary text-text-primary p-4 outline-none resize-none font-mono text-sm leading-relaxed"
                         value={content}
                         onChange={handleChange}
                         placeholder="# Write your markdown here..."
                     />
                 </div>
 
-                {/* Preview */}
-                <div className="flex-1 h-full overflow-y-auto p-4 prose prose-invert max-w-none">
-                    {/* Tailwind typography plugin required for 'prose' class to work beautifully, 
-                        or manual styling. Assuming raw styles for now if plugin absent. 
-                        User migrated to standard CSS/Tailwind recently. 
-                        Let's verify logic. remark-gfm adds table support.
-                     */}
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}
-                        components={{
-                            code({ node, inline, className, children, ...props }: any) {
-                                return !inline ? (
-                                    <pre className="bg-bg-tertiary p-2 rounded my-2 overflow-x-auto text-sm">
-                                        <code className={className} {...props}>
+                {/* Preview & Backlinks */}
+                <div className="flex-1 h-full flex flex-col overflow-hidden">
+                    <div className="flex-1 overflow-y-auto p-4 prose prose-invert max-w-none">
+                        <ReactMarkdown
+                            remarkPlugins={[
+                                remarkGfm,
+                                [wikiLinkPlugin, { hrefTemplate: (permalink: string) => `internal://${permalink}` }]
+                            ]}
+                            urlTransform={(url) => url}
+                            components={{
+                                code({ node, inline, className, children, ...props }: any) {
+                                    return !inline ? (
+                                        <pre className="bg-bg-tertiary p-2 rounded my-2 overflow-x-auto text-sm">
+                                            <code className={className} {...props}>
+                                                {children}
+                                            </code>
+                                        </pre>
+                                    ) : (
+                                        <code className="bg-bg-tertiary px-1 py-0.5 rounded text-sm text-accent-secondary" {...props}>
                                             {children}
                                         </code>
-                                    </pre>
-                                ) : (
-                                    <code className="bg-bg-tertiary px-1 py-0.5 rounded text-sm text-accent-secondary" {...props}>
-                                        {children}
-                                    </code>
-                                )
-                            },
-                            table({ children }: any) {
-                                return <table className="border-collapse border border-border-secondary w-full my-4">{children}</table>
-                            },
-                            th({ children }: any) {
-                                return <th className="border border-border-secondary px-2 py-1 bg-bg-tertiary text-left">{children}</th>
-                            },
-                            td({ children }: any) {
-                                return <td className="border border-border-secondary px-2 py-1">{children}</td>
-                            },
-                            a({ href, children }: any) {
-                                return <a href={href} className="text-accent-secondary hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>
-                            },
-                            h1({ children }: any) { return <h1 className="text-2xl font-bold border-b border-border-secondary pb-2 mb-4 mt-6">{children}</h1> },
-                            h2({ children }: any) { return <h2 className="text-xl font-bold border-b border-border-secondary pb-1 mb-3 mt-5">{children}</h2> },
-                            h3({ children }: any) { return <h3 className="text-lg font-bold mb-2 mt-4">{children}</h3> },
-                            ul({ children }: any) { return <ul className="list-disc list-inside mb-4">{children}</ul> },
-                            ol({ children }: any) { return <ol className="list-decimal list-inside mb-4">{children}</ol> },
-                            blockquote({ children }: any) { return <blockquote className="border-l-4 border-accent-secondary pl-4 italic bg-bg-tertiary py-2 my-4 rounded-r">{children}</blockquote> }
-                        }}
-                    >
-                        {content}
-                    </ReactMarkdown>
+                                    )
+                                },
+                                table({ children }: any) {
+                                    return <table className="border-collapse border border-border-secondary w-full my-4">{children}</table>
+                                },
+                                th({ children }: any) {
+                                    return <th className="border border-border-secondary px-2 py-1 bg-bg-tertiary text-left">{children}</th>
+                                },
+                                td({ children }: any) {
+                                    return <td className="border border-border-secondary px-2 py-1">{children}</td>
+                                },
+                                a({ href, children }: any) {
+                                    const isInternal = href && href.startsWith("internal://");
+                                    const handleClick = (e: React.MouseEvent) => {
+                                        if (isInternal && onNavigate) {
+                                            e.preventDefault();
+                                            onNavigate(href);
+                                        }
+                                    };
+                                    return (
+                                        <a
+                                            href={href}
+                                            onClick={handleClick}
+                                            className={`text-accent-secondary hover:underline ${isInternal ? "cursor-alias font-semibold" : ""}`}
+                                            target={isInternal ? undefined : "_blank"}
+                                            rel={isInternal ? undefined : "noopener noreferrer"}
+                                        >
+                                            {children}
+                                            {isInternal && <span className="text-xs ml-1 opacity-50">↗</span>}
+                                        </a>
+                                    );
+                                },
+                                h1({ children }: any) { return <h1 className="text-2xl font-bold border-b border-border-secondary pb-2 mb-4 mt-6">{children}</h1> },
+                                h2({ children }: any) { return <h2 className="text-xl font-bold border-b border-border-secondary pb-1 mb-3 mt-5">{children}</h2> },
+                                h3({ children }: any) { return <h3 className="text-lg font-bold mb-2 mt-4">{children}</h3> },
+                                ul({ children }: any) { return <ul className="list-disc list-inside mb-4">{children}</ul> },
+                                ol({ children }: any) { return <ol className="list-decimal list-inside mb-4">{children}</ol> },
+                                blockquote({ children }: any) { return <blockquote className="border-l-4 border-accent-secondary pl-4 italic bg-bg-tertiary py-2 my-4 rounded-r">{children}</blockquote> }
+                            }}
+                        >
+                            {content}
+                        </ReactMarkdown>
+                    </div>
+                    {/* Backlinks Section */}
+                    {backlinks.length > 0 && (
+                        <div className="h-40 border-t border-border-primary p-4 bg-bg-tertiary overflow-y-auto">
+                            <h3 className="text-sm font-bold text-text-secondary mb-2">Linked to this note:</h3>
+                            <ul className="space-y-1">
+                                {backlinks.map((linkPath) => {
+                                    // Extract filename for display
+                                    const parts = linkPath.split(/[/\\]/);
+                                    const fileName = parts.pop() || linkPath;
+                                    const displayName = fileName.replace(".md", "");
+
+                                    return (
+                                        <li key={linkPath}>
+                                            <button
+                                                onClick={() => onNavigate && onNavigate(`internal://${displayName}`)}
+                                                className="text-xs text-accent-secondary hover:underline flex items-center"
+                                            >
+                                                <span className="mr-1">←</span>
+                                                {displayName}
+                                                <span className="text-text-tertiary ml-2 text-[10px] truncate max-w-[200px]">{linkPath}</span>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

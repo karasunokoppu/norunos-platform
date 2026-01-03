@@ -34,3 +34,31 @@ export async function deleteItem(path: string): Promise<void> {
 export async function renameItem(path: string, newName: string): Promise<string> {
     return await invoke("rename_item", { path, newName });
 }
+
+export async function getBacklinks(target: string): Promise<string[]> {
+    return await invoke("get_backlinks", { target });
+}
+
+export interface GraphNode {
+    id: string;
+    name: string;
+    val: number;
+}
+
+export interface GraphLink {
+    source: string;
+    target: string;
+}
+
+export interface GraphData {
+    nodes: GraphNode[];
+    links: GraphLink[];
+}
+
+/**
+ * Fetches the graph data for the visualization.
+ * Returns a list of nodes (files) and links (internal connections).
+ */
+export async function getGraphData(): Promise<GraphData> {
+    return await invoke("get_graph_data");
+}

@@ -19,6 +19,8 @@ pub struct Task {
     pub created_at: DateTime<Local>,
     pub updated_at: Option<DateTime<Local>>,
     pub deleted_at: Option<DateTime<Local>>,
+    #[serde(default)]
+    pub dependencies: Vec<String>,
 }
 
 impl Task {
@@ -35,6 +37,7 @@ impl Task {
             created_at: Local::now(),
             updated_at: None,
             deleted_at: None,
+            dependencies: Vec::new(),
         }
     }
 

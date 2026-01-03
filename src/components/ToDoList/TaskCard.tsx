@@ -1,5 +1,5 @@
 import type React from "react";
-import { Task } from "../../type";
+import { Task, TaskGroup } from "../../type";
 import SubTaskCard from "./SubTaskCard";
 import { updateTask, deleteTask } from "../../tauri/to_do_list_api";
 import NorunoContextMenu, { ContextMenuItem } from "../../ui/NorunoContextMenu";
@@ -9,9 +9,10 @@ import EditTaskDialog from "./EditTaskDialog";
 interface TaskCardProps {
     task: Task;
     onRefresh: () => void;
+    taskGroups: TaskGroup[];
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
     const [isOpened, setIsOpened] = useState(false);
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -138,6 +139,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh }) => {
                 isOpen={isEditDialogOpen}
                 onClose={() => setIsEditDialogOpen(false)}
                 onSave={handleSaveEdit}
+                taskGroups={taskGroups}
             />
 
         </div>

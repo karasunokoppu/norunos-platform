@@ -25,7 +25,7 @@ const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks, onRefresh 
 			) : currentContent === "Calender" ? (
 				<CalenderView tasks={tasks} />
 			) : currentContent === "Gantt Chart" ? (
-				<GanttChartView tasks={tasks} />
+				<GanttChartView tasks={tasks} onRefresh={onRefresh} />
 			) : currentContent === "Notes" ? (
 				<NotesView />
 			) : currentContent === "Books" ? (
