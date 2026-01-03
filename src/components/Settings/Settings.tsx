@@ -18,7 +18,7 @@ const SettingsView = () => {
 				<div className="flex flex-col gap-2">
 					<button
 						onClick={handleTestNotification}
-						className="px-4 py-2 bg-accent-primary text-white rounded hover:bg-accent-hover w-fit transition-colors"
+						className="px-4 py-2 bg-accent-secondary text-white rounded hover:bg-accent-hover w-fit transition-colors"
 					>
 						Test Notification
 					</button>

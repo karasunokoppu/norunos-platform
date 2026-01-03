@@ -4,7 +4,6 @@ import NoteEditor from "./NoteEditor";
 import GraphView from "./GraphView";
 import { getNotesTree, readNote, createNote, createFolder, deleteItem, renameItem, FileNode } from "../../tauri/notes_api";
 import FolderSelectDialog from "./FolderSelectDialog";
-import { Network } from "lucide-react";
 
 const NotesView: React.FC = () => {
 	const [fileTree, setFileTree] = useState<FileNode[]>([]);

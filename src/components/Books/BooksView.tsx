@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 // Placeholder components
 const BookItem = ({ book, onClick }: { book: Book; onClick: (book: Book) => void }) => (
 	<div
-		className="border p-4 rounded shadow hover:shadow-lg cursor-pointer transition-shadow bg-white"
+		className="border p-4 rounded shadow hover:shadow-lg cursor-pointer transition-shadow bg-bg-primary text-text-primary"
 		onClick={() => onClick(book)}
 	>
 		{book.cover_image_path && (
@@ -20,7 +20,7 @@ const BookItem = ({ book, onClick }: { book: Book; onClick: (book: Book) => void
 			</div>
 		)}
 		{!book.cover_image_path && (
-			<div className="h-48 w-full mb-2 bg-gray-200 flex items-center justify-center text-gray-400">
+			<div className="h-48 w-full mb-2 bg-bg-tertiary flex items-center justify-center text-gray-400">
 				No Cover
 			</div>
 		)}
@@ -79,7 +79,7 @@ const BooksView = () => {
 	return (
 		<div className="p-6">
 			<div className="flex justify-between items-center mb-6">
-				<h2 className="text-2xl font-bold">Books (Reading Memos)</h2>
+				<h2 className="text-2xl text-text-primary font-bold">Books (Reading Memos)</h2>
 				<button
 					className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
 					onClick={handleAddClick}

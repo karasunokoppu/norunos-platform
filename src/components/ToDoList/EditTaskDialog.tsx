@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Task, TaskGroup } from "../../type";
 import NorunoDatePicker from "../../ui/NorunoDatePicker";
+import NorunoDropdown from "../../ui/NorunoDropdown";
 import { moveTaskToGroup } from "../../tauri/to_do_list_api";
 
 interface EditTaskDialogProps {
@@ -88,19 +89,22 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({ task, isOpen, onClose, 
                     />
                 </div>
 
+                {/* import NorunoDropdown from "../../ui/NorunoDropdown";
+
+                // ... (existing imports, but remove line 4 moveTaskToGroup if not needed or keep it)
+                // actually we need to add the import at the top, I'll use a larger block or separate edit if needed.
+                // But wait, allow_multiple is false. I should do a cleaner replace.
+
+                // Let's replace the whole file content block for imports + the usage area. */}
+
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">Task Group</label>
-                    <select
+                    <NorunoDropdown
+                        options={taskGroups.map(g => ({ label: g.name, value: g.id }))}
                         value={selectedGroupId}
-                        onChange={(e) => setSelectedGroupId(e.target.value)}
-                        className="w-full bg-bg-secondary border border-border-primary rounded px-3 py-2 focus:outline-none focus:border-accent-primary"
-                    >
-                        {taskGroups.map(group => (
-                            <option key={group.id} value={group.id}>
-                                {group.name}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={(value) => setSelectedGroupId(value)}
+                        placeholder="Select Group"
+                    />
                 </div>
 
                 <div className="mb-4">

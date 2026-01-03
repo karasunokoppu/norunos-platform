@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { Task, TaskGroup } from "../../type";
-import { getTaskGroups } from "../../tauri/to_do_list_api";
+import { getTaskGroups, updateTask } from "../../tauri/to_do_list_api";
 
 interface GanttChartViewProps {
 	tasks: Task[];
@@ -137,7 +137,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 					const newDeps = [...(task.dependencies || []), linkSource];
 					const updatedTask = { ...task, dependencies: newDeps };
 					try {
-						await import("../../tauri/to_do_list_api").then(mod => mod.updateTask(updatedTask));
+						await updateTask(updatedTask);
 						if (onRefresh) onRefresh();
 						setLinkSource(null);
 						setLinkMode(false);
@@ -149,7 +149,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 					const newDeps = task.dependencies.filter(id => id !== linkSource);
 					const updatedTask = { ...task, dependencies: newDeps };
 					try {
-						await import("../../tauri/to_do_list_api").then(mod => mod.updateTask(updatedTask));
+						await updateTask(updatedTask);
 						if (onRefresh) onRefresh();
 						setLinkSource(null);
 						setLinkMode(false);
@@ -256,7 +256,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 					end_datetime: newEnd.toISOString()
 				};
 				try {
-					await import("../../tauri/to_do_list_api").then(mod => mod.updateTask(updatedTask));
+					await updateTask(updatedTask);
 					if (onRefresh) onRefresh();
 				} catch (err) {
 					console.error("Failed to update task date", err);
