@@ -73,3 +73,12 @@ export async function deleteTaskGroup(group: TaskGroup): Promise<TaskGroup[]> {
         throw e;
     }
 }
+
+export async function moveTaskToGroup(taskId: string, groupId: string): Promise<void> {
+    try {
+        await invoke("move_task_to_group", { taskId, groupId });
+    } catch (e) {
+        console.error("moveTaskToGroup failed", e);
+        throw e;
+    }
+}

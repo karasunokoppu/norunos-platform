@@ -67,6 +67,7 @@ pub fn run() {
             create_task_group,
             update_task_group,
             delete_task_group,
+            move_task_to_group,
             commands::calendar::memo::get_memos,
             commands::calendar::memo::save_memo,
             commands::calendar::memo::delete_memo,

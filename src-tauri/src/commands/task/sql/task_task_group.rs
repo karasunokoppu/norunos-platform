@@ -51,3 +51,14 @@ pub async fn get_task_id_from_task_group_id(
     }
     Ok(task_ids)
 }
+
+pub async fn delete_rela_task_task_group_by_task_id(
+    pool: &SqlitePool,
+    task_id: String,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM rela_task_task_group WHERE task_id = ?")
+        .bind(task_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
