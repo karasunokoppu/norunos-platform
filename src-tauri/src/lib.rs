@@ -77,6 +77,7 @@ pub fn run() {
             commands::notes::fs::create_folder,
             commands::notes::fs::delete_item,
             commands::notes::fs::rename_item,
+            commands::notes::fs::get_backlinks,
             commands::books::commands::get_books,
             commands::books::commands::create_book,
             commands::books::commands::update_book,

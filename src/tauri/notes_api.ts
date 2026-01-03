@@ -34,3 +34,7 @@ export async function deleteItem(path: string): Promise<void> {
 export async function renameItem(path: string, newName: string): Promise<string> {
     return await invoke("rename_item", { path, newName });
 }
+
+export async function getBacklinks(target: string): Promise<string[]> {
+    return await invoke("get_backlinks", { target });
+}

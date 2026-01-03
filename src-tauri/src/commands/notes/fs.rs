@@ -168,3 +168,75 @@ pub async fn rename_item(path: String, new_name: String) -> Result<String, Strin
     fs::rename(&old_path, &new_path).map_err(|e| e.to_string())?;
     Ok(new_path.to_string_lossy().to_string())
 }
+
+fn find_backlinks_recursive(
+    dir: &Path,
+    target_name: &str,
+    backlinks: &mut Vec<String>,
+) -> Result<(), String> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+
+    let entries = fs::read_dir(dir).map_err(|e| e.to_string())?;
+    for entry in entries {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            find_backlinks_recursive(&path, target_name, backlinks)?;
+        } else {
+            if let Some(ext) = path.extension() {
+                if ext == "md" {
+                    // Read file content
+                    let content = fs::read_to_string(&path).unwrap_or_default();
+                    // Simple check for [[target_name]] or [[target_name|
+                    // Note: This is case-sensitive and simple string matching.
+                    // ideally we'd parse markdown, but for now this is efficient enough.
+                    // We need to handle potential aliases or lack of .md extension in link.
+                    // target_name passed from frontend usually doesn't have .md for the link check,
+                    // or we should strip it.
+
+                    // Let's assume target_name is the Note Name (e.g. "My Note").
+                    // Links look like [[My Note]] or [[My Note|Alias]].
+
+                    let link_pattern_1 = format!("[[{}]]", target_name);
+                    let link_pattern_2 = format!("[[{}|", target_name);
+
+                    if content.contains(&link_pattern_1) || content.contains(&link_pattern_2) {
+                        backlinks.push(path.to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_backlinks(target: String) -> Result<Vec<String>, String> {
+    let root = ensure_notes_dir()?;
+    let mut backlinks = Vec::new();
+
+    // Target might contain .md extension, but wiki-links usually don't.
+    // Let's strip extension if present for the search.
+    let search_term = if target.ends_with(".md") {
+        target.trim_end_matches(".md").to_string()
+    } else {
+        target.clone()
+    };
+
+    // We also need to handle path separators if target is passed as full path?
+    // The frontend usually passes currentFile which is full path.
+    // We need to extract just the file stem (filename without extension).
+    let path_obj = PathBuf::from(&search_term);
+    let file_stem = path_obj
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(&search_term)
+        .to_string();
+
+    find_backlinks_recursive(&root, &file_stem, &mut backlinks)?;
+
+    Ok(backlinks)
+}
