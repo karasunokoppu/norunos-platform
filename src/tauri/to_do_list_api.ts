@@ -74,6 +74,11 @@ export async function deleteTaskGroup(group: TaskGroup): Promise<TaskGroup[]> {
     }
 }
 
+/**
+ * Moves a task to a different task group.
+ * @param taskId - The ID of the task to move.
+ * @param groupId - The ID of the destination group.
+ */
 export async function moveTaskToGroup(taskId: string, groupId: string): Promise<void> {
     try {
         await invoke("move_task_to_group", { taskId, groupId });

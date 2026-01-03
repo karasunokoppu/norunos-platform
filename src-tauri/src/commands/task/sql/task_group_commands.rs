@@ -54,6 +54,11 @@ pub async fn delete_task_group(
         .map_err(|e| e.to_string())
 }
 
+/// Moves a task from its current group to a new group.
+///
+/// This involves:
+/// 1. Removing the existing relationship from `rela_task_task_group`.
+/// 2. Creating a new relationship with the target `group_id`.
 #[tauri::command]
 pub async fn move_task_to_group(
     state: tauri::State<'_, AppState>,

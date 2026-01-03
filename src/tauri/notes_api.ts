@@ -55,6 +55,10 @@ export interface GraphData {
     links: GraphLink[];
 }
 
+/**
+ * Fetches the graph data for the visualization.
+ * Returns a list of nodes (files) and links (internal connections).
+ */
 export async function getGraphData(): Promise<GraphData> {
     return await invoke("get_graph_data");
 }

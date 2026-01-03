@@ -150,22 +150,18 @@ const NotesView: React.FC = () => {
 				onRename={handleRename}
 			/>
 			<div className="flex-1 flex flex-col h-full bg-bg-secondary overflow-hidden relative">
-				<button
-					onClick={() => setShowGraph(!showGraph)}
-					className={`absolute top-2 right-4 z-10 p-2 rounded-full shadow-lg ${showGraph ? "bg-accent-primary text-white" : "bg-bg-tertiary text-text-primary hover:bg-bg-hover"}`}
-					title="Toggle Graph View"
-				>
-					<Network size={20} />
-				</button>
-
 				{showGraph ? (
-					<GraphView onNavigate={handleNavigate} />
+					<GraphView
+						onNavigate={handleNavigate}
+						onClose={() => setShowGraph(false)}
+					/>
 				) : (
 					<NoteEditor
 						path={currentFile}
 						initialContent={fileContent}
 						onSaveSuccess={() => { }}
 						onNavigate={handleNavigate}
+						onToggleGraph={() => setShowGraph(true)}
 					/>
 				)}
 			</div>

@@ -3,15 +3,17 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import wikiLinkPlugin from "remark-wiki-link";
 import { saveNote, getBacklinks } from "../../tauri/notes_api";
+import { Network } from "lucide-react";
 
 interface NoteEditorProps {
     path: string | null;
     initialContent: string;
     onSaveSuccess: () => void;
     onNavigate?: (target: string) => void;
+    onToggleGraph?: () => void;
 }
 
-const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuccess, onNavigate }) => {
+const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuccess, onNavigate, onToggleGraph }) => {
     const [content, setContent] = useState(initialContent);
     const [isDirty, setIsDirty] = useState(false);
     const [backlinks, setBacklinks] = useState<string[]>([]);
@@ -67,8 +69,21 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
 
     if (!path) {
         return (
-            <div className="flex-1 flex justify-center items-center text-text-tertiary bg-bg-secondary h-full">
-                Select a note to edit
+            <div className="flex-1 flex flex-col h-full bg-bg-secondary text-text-primary">
+                <div className="h-10 border-b border-border-primary bg-bg-primary flex items-center px-4 justify-end">
+                    {onToggleGraph && (
+                        <button
+                            onClick={onToggleGraph}
+                            className="p-1 rounded hover:bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors"
+                            title="Graph View"
+                        >
+                            <Network size={18} />
+                        </button>
+                    )}
+                </div>
+                <div className="flex-1 flex justify-center items-center text-text-tertiary">
+                    Select a note to edit
+                </div>
             </div>
         );
     }
@@ -85,6 +100,15 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
                         {isDirty ? "Unsaved" : "Saved"}
                     </span>
                     <button onClick={handleSave} className="bg-accent-secondary text-white px-3 py-1 rounded text-xs hover:bg-opacity-80">Save</button>
+                    {onToggleGraph && (
+                        <button
+                            onClick={onToggleGraph}
+                            className="p-1 rounded hover:bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors"
+                            title="Graph View"
+                        >
+                            <Network size={18} />
+                        </button>
+                    )}
                 </div>
             </div>
 

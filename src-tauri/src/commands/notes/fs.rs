@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
+use tauri::Manager;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileNode {
@@ -10,18 +11,15 @@ pub struct FileNode {
     pub children: Option<Vec<FileNode>>,
 }
 
-const NOTES_DIR_NAME: &str = "NorunosNotes";
+// const NOTES_DIR_NAME: &str = "NorunosNotes"; // No longer needed as we use "notes" inside app data
 
-fn get_notes_dir() -> PathBuf {
-    if let Ok(home) = std::env::var("HOME") {
-        PathBuf::from(home).join("Documents").join(NOTES_DIR_NAME)
-    } else {
-        PathBuf::from(NOTES_DIR_NAME) // Fallback
-    }
+fn get_notes_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    Ok(app_data_dir.join("notes"))
 }
 
-fn ensure_notes_dir() -> Result<PathBuf, String> {
-    let path = get_notes_dir();
+fn ensure_notes_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let path = get_notes_dir(app)?;
     if !path.exists() {
         fs::create_dir_all(&path).map_err(|e| e.to_string())?;
     }
@@ -70,8 +68,8 @@ fn read_dir_recursive(path: &Path) -> Result<Vec<FileNode>, String> {
 }
 
 #[tauri::command]
-pub async fn get_notes_tree() -> Result<Vec<FileNode>, String> {
-    let root = ensure_notes_dir()?;
+pub async fn get_notes_tree(app: tauri::AppHandle) -> Result<Vec<FileNode>, String> {
+    let root = ensure_notes_dir(&app)?;
     read_dir_recursive(&root)
 }
 
@@ -86,10 +84,14 @@ pub async fn save_note(path: String, content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn create_note(parent_path: String, name: String) -> Result<String, String> {
+pub async fn create_note(
+    app: tauri::AppHandle,
+    parent_path: String,
+    name: String,
+) -> Result<String, String> {
     // If parent_path is empty, use root.
     let dir = if parent_path.is_empty() {
-        ensure_notes_dir()?
+        ensure_notes_dir(&app)?
     } else {
         PathBuf::from(parent_path)
     };
@@ -108,9 +110,13 @@ pub async fn create_note(parent_path: String, name: String) -> Result<String, St
 }
 
 #[tauri::command]
-pub async fn create_folder(parent_path: String, name: String) -> Result<String, String> {
+pub async fn create_folder(
+    app: tauri::AppHandle,
+    parent_path: String,
+    name: String,
+) -> Result<String, String> {
     let dir = if parent_path.is_empty() {
-        ensure_notes_dir()?
+        ensure_notes_dir(&app)?
     } else {
         PathBuf::from(parent_path)
     };
@@ -180,8 +186,8 @@ fn find_backlinks_recursive(
 }
 
 #[tauri::command]
-pub async fn get_backlinks(target: String) -> Result<Vec<String>, String> {
-    let root = ensure_notes_dir()?;
+pub async fn get_backlinks(app: tauri::AppHandle, target: String) -> Result<Vec<String>, String> {
+    let root = ensure_notes_dir(&app)?;
     let mut backlinks = Vec::new();
 
     // Target might contain .md extension, but wiki-links usually don't.
@@ -287,9 +293,14 @@ fn collect_graph_data_recursive(
     Ok(())
 }
 
+/// Generates graph data (nodes and links) for the Notes feature.
+///
+/// Scans the notes directory recursively.
+/// - Nodes are created for each Markdown file.
+/// - Links are created for every wiki-link `[[Target]]` found in the content.
 #[tauri::command]
-pub async fn get_graph_data() -> Result<GraphData, String> {
-    let root = ensure_notes_dir()?;
+pub async fn get_graph_data(app: tauri::AppHandle) -> Result<GraphData, String> {
+    let root = ensure_notes_dir(&app)?;
     let mut nodes = Vec::new();
     let mut links = Vec::new();
 
