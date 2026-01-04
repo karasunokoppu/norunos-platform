@@ -96,12 +96,17 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
                     className="w-full px-2 flex flex-row justify-between"
                 >
                     <div className="w-fit flex flex-row items-center gap-3">
-                        <div className="flex flex-col">
-                            <label className="font-medium">{task.description}</label>
+                        <div className="flex flex-col gap-2">
+                            <label className="font-medium max-w-lg">{task.description}</label>
                             <div className="flex flex-row gap-2 text-xs text-text-secondary">
                                 <label>ID: {task.id.substring(0, 8)}...</label>
                             </div>
                         </div>
+                        {!isOpened && task.subtasks && task.subtasks.length > 0 && (
+                            <span className="bg-bg-tertiary rounded-sm px-2 py-1 mx-2 text-xs text-text-primary">
+                                {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                            </span>
+                        )}
                     </div>
                     <div>
                         <div className="grid">
@@ -117,22 +122,26 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
                     削除
                 </button>
             </div>
-            {isOpened && (
-                <SubTaskCard
-                    subtasks={task.subtasks}
-                    isOpened={isOpened}
-                    onUpdate={handleSubtaskUpdate}
-                />
-            )}
+            {
+                isOpened && (
+                    <SubTaskCard
+                        subtasks={task.subtasks}
+                        isOpened={isOpened}
+                        onUpdate={handleSubtaskUpdate}
+                    />
+                )
+            }
 
-            {contextMenu && (
-                <NorunoContextMenu
-                    x={contextMenu.x}
-                    y={contextMenu.y}
-                    items={contextMenuItems}
-                    onClose={() => setContextMenu(null)}
-                />
-            )}
+            {
+                contextMenu && (
+                    <NorunoContextMenu
+                        x={contextMenu.x}
+                        y={contextMenu.y}
+                        items={contextMenuItems}
+                        onClose={() => setContextMenu(null)}
+                    />
+                )
+            }
 
             <EditTaskDialog
                 task={task}
@@ -142,7 +151,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
                 taskGroups={taskGroups}
             />
 
-        </div>
+        </div >
     );
 };
 

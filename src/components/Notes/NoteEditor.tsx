@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import wikiLinkPlugin from "remark-wiki-link";
 import { saveNote, getBacklinks } from "../../tauri/notes_api";
 import { Network } from "lucide-react";
+import remarkBreaks from "remark-breaks";
 
 interface NoteEditorProps {
     path: string | null;
@@ -130,6 +131,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
                         <ReactMarkdown
                             remarkPlugins={[
                                 remarkGfm,
+                                remarkBreaks,
                                 [wikiLinkPlugin, { hrefTemplate: (permalink: string) => `internal://${permalink}` }]
                             ]}
                             urlTransform={(url) => url}
@@ -185,7 +187,10 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
                                 blockquote({ children }: any) { return <blockquote className="border-l-4 border-accent-secondary pl-4 italic bg-bg-tertiary py-2 my-4 rounded-r">{children}</blockquote> }
                             }}
                         >
-                            {content}
+                            {content
+                                .replace(/([^\n])\n---/g, "$1\n\n---") // Header fix
+                                .replace(/\n(?=\n)/g, '\n&nbsp;')      // Empty line fix
+                            }
                         </ReactMarkdown>
                     </div>
                     {/* Backlinks Section */}
