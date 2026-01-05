@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
 	DndContext,
 	DragOverlay,
-	closestCorners,
+	closestCenter,
 	KeyboardSensor,
 	PointerSensor,
 	useSensor,
 	useSensors,
 	DragStartEvent,
 	DragEndEvent,
+	defaultDropAnimationSideEffects,
+	DropAnimation,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Task, TaskGroup } from "../../type";
@@ -46,6 +48,16 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 			coordinateGetter: sortableKeyboardCoordinates,
 		})
 	);
+
+	const dropAnimation: DropAnimation = {
+		sideEffects: defaultDropAnimationSideEffects({
+			styles: {
+				active: {
+					opacity: '0.4',
+				},
+			},
+		}),
+	};
 
 	const handleDragStart = (event: DragStartEvent) => {
 		setActiveId(event.active.id as string);
@@ -126,7 +138,7 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 			{/* Kanban Board Area */}
 			<DndContext
 				sensors={sensors}
-				collisionDetection={closestCorners}
+				collisionDetection={closestCenter}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
 			>
@@ -142,11 +154,7 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 						)}
 
 						{taskGroups.map(group => {
-							// Filter tasks for this group
-							// Note: We need to ensure tasks are in order if backend supports it.
-							// Currently just filtering from main list.
 							const groupTasks = tasks.filter(t => group.tasks.includes(t.id));
-
 							return (
 								<BoardColumn
 									key={group.id}
@@ -196,9 +204,9 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 					</div>
 				</div>
 
-				<DragOverlay>
+				<DragOverlay dropAnimation={dropAnimation}>
 					{activeTask ? (
-						<div className="transform scale-105 opacity-90 cursor-grabbing">
+						<div className="transform rotate-2 scale-105 opacity-95 cursor-grabbing shadow-2xl rounded-md ring-2 ring-accent-secondary ring-opacity-50">
 							<TaskCard task={activeTask} onRefresh={() => { }} taskGroups={taskGroups} />
 						</div>
 					) : null}

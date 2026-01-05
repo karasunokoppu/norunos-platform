@@ -12,7 +12,7 @@ interface BoardColumnProps {
 }
 
 const BoardColumn: React.FC<BoardColumnProps> = ({ group, tasks, onRefresh, taskGroups }) => {
-    const { setNodeRef } = useDroppable({
+    const { setNodeRef, isOver } = useDroppable({
         id: group.id,
     });
 
@@ -20,9 +20,18 @@ const BoardColumn: React.FC<BoardColumnProps> = ({ group, tasks, onRefresh, task
     const completedTasks = tasks.filter(t => t.completed);
 
     return (
-        <div className="flex flex-col min-w-[320px] w-80 bg-bg-tertiary/30 rounded-lg mr-4 h-full max-h-full border border-border-primary shadow-sm flex-shrink-0">
+        <div
+            ref={setNodeRef}
+            className={`flex flex-col min-w-[320px] w-80 rounded-lg mr-4 h-full max-h-full border shadow-sm flex-shrink-0 transition-colors duration-200
+                ${isOver
+                    ? 'bg-bg-tertiary border-accent-secondary ring-2 ring-accent-secondary/30'
+                    : 'bg-bg-tertiary/30 border-border-primary'
+                }
+            `}
+        >
             {/* Header */}
-            <div className="p-3 flex items-center justify-between border-b border-border-primary bg-bg-tertiary rounded-t-lg">
+            <div className={`p-3 flex items-center justify-between border-b rounded-t-lg transition-colors duration-200 ${isOver ? 'border-accent-secondary/50 bg-bg-tertiary' : 'border-border-primary bg-bg-tertiary'
+                }`}>
                 <div className="font-bold text-text-primary truncate">
                     {group.name}
                 </div>
@@ -33,7 +42,6 @@ const BoardColumn: React.FC<BoardColumnProps> = ({ group, tasks, onRefresh, task
 
             {/* Droppable Area */}
             <div
-                ref={setNodeRef}
                 className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-bg-tertiary scrollbar-track-transparent"
             >
                 <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
