@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FileNode } from "../../tauri/notes_api";
-import { Folder, File, ChevronRight, ChevronDown, Plus, Edit2, Trash2, FolderPlus } from "lucide-react";
+import { Folder, File, ChevronRight, ChevronDown, Plus, FolderPlus } from "lucide-react";
+import NorunoContextMenu, { ContextMenuItem } from "../../ui/NorunoContextMenu";
 
 interface NotesSidebarProps {
     fileTree: FileNode[];
@@ -17,11 +18,8 @@ const FileTreeNode: React.FC<{
     selected: string | null;
     onSelect: (path: string) => void;
     level: number;
-    onCreateFile: (parentPath: string) => void;
-    onCreateFolder: (parentPath: string) => void;
-    onDelete: (path: string) => void;
-    onRename: (path: string) => void;
-}> = ({ node, selected, onSelect, level, onCreateFile, onCreateFolder, onDelete, onRename }) => {
+    onContextMenu: (e: React.MouseEvent, node: FileNode) => void;
+}> = ({ node, selected, onSelect, level, onContextMenu }) => {
     const [isOpen, setIsOpen] = useState(false);
     const isSelected = selected === node.path;
     const paddingLeft = level * 10 + 4;
@@ -32,17 +30,13 @@ const FileTreeNode: React.FC<{
         else onSelect(node.path);
     };
 
-    const handleContextAction = (e: React.MouseEvent, action: () => void) => {
-        e.stopPropagation();
-        action();
-    };
-
     return (
         <div>
             <div
                 className={`flex items-center p-1 cursor-pointer hover:bg-bg-hover text-sm group ${isSelected ? "bg-bg-active text-text-primary" : "text-text-secondary"}`}
                 style={{ paddingLeft: `${paddingLeft}px` }}
                 onClick={handleToggle}
+                onContextMenu={(e) => onContextMenu(e, node)}
             >
                 {node.is_dir ? (
                     <span className="mr-1">{isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</span>
@@ -53,17 +47,6 @@ const FileTreeNode: React.FC<{
                 {node.is_dir ? <Folder size={14} className="mr-2 text-accent-secondary" /> : <File size={14} className="mr-2 text-text-tertiary" />}
 
                 <span className="flex-1 truncate">{node.name}</span>
-
-                <div className="hidden group-hover:flex gap-1 ml-2">
-                    {node.is_dir && (
-                        <>
-                            <button onClick={(e) => handleContextAction(e, () => onCreateFile(node.path))} title="New Note"><Plus size={12} /></button>
-                            <button onClick={(e) => handleContextAction(e, () => onCreateFolder(node.path))} title="New Folder"><FolderPlus size={12} /></button>
-                        </>
-                    )}
-                    <button onClick={(e) => handleContextAction(e, () => onRename(node.path))} title="Rename"><Edit2 size={12} /></button>
-                    <button onClick={(e) => handleContextAction(e, () => onDelete(node.path))} title="Delete" className="text-danger"><Trash2 size={12} /></button>
-                </div>
             </div>
 
             {isOpen && node.children && (
@@ -75,10 +58,7 @@ const FileTreeNode: React.FC<{
                             selected={selected}
                             onSelect={onSelect}
                             level={level + 1}
-                            onCreateFile={onCreateFile}
-                            onCreateFolder={onCreateFolder}
-                            onDelete={onDelete}
-                            onRename={onRename}
+                            onContextMenu={onContextMenu}
                         />
                     ))}
                 </div>
@@ -88,8 +68,54 @@ const FileTreeNode: React.FC<{
 };
 
 const NotesSidebar: React.FC<NotesSidebarProps> = ({ fileTree, onSelectFile, currentFile, onCreateFile, onCreateFolder, onDelete, onRename }) => {
+    const [contextMenu, setContextMenu] = useState<{
+        x: number;
+        y: number;
+        node: FileNode;
+    } | null>(null);
+
+    const handleContextMenu = (e: React.MouseEvent, node: FileNode) => {
+        e.preventDefault();
+        setContextMenu({ x: e.clientX, y: e.clientY, node });
+    };
+
+    const handleCloseContextMenu = () => {
+        setContextMenu(null);
+    };
+
+    const getContextMenuItems = (node: FileNode): ContextMenuItem[] => {
+        const items: ContextMenuItem[] = [];
+
+        if (node.is_dir) {
+            items.push(
+                {
+                    label: "New Note",
+                    onClick: () => onCreateFile(node.path),
+                },
+                {
+                    label: "New Folder",
+                    onClick: () => onCreateFolder(node.path),
+                }
+            );
+        }
+
+        items.push(
+            {
+                label: "Rename",
+                onClick: () => onRename(node.path),
+            },
+            {
+                label: "Delete",
+                onClick: () => onDelete(node.path),
+                danger: true,
+            }
+        );
+
+        return items;
+    };
+
     return (
-        <div className="w-64 bg-bg-primary border-r border-border-primary flex flex-col h-full">
+        <div className="w-64 bg-bg-primary border-r border-border-primary flex flex-col h-full" onContextMenu={(e) => e.preventDefault()}>
             <div className="p-2 border-b border-border-primary flex justify-between items-center text-text-primary font-bold text-sm">
                 <span>Notes</span>
                 <div className="flex gap-2">
@@ -105,14 +131,20 @@ const NotesSidebar: React.FC<NotesSidebarProps> = ({ fileTree, onSelectFile, cur
                         selected={currentFile}
                         onSelect={onSelectFile}
                         level={1}
-                        onCreateFile={onCreateFile}
-                        onCreateFolder={onCreateFolder}
-                        onDelete={onDelete}
-                        onRename={onRename}
+                        onContextMenu={handleContextMenu}
                     />
                 ))}
                 {fileTree.length === 0 && <div className="p-4 text-xs text-text-tertiary text-center">No notes found. Create one!</div>}
             </div>
+
+            {contextMenu && (
+                <NorunoContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    items={getContextMenuItems(contextMenu.node)}
+                    onClose={handleCloseContextMenu}
+                />
+            )}
         </div>
     );
 };
