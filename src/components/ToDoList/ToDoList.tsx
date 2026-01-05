@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from "react";
+import {
+	DndContext,
+	DragOverlay,
+	closestCorners,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+	DragStartEvent,
+	DragEndEvent,
+} from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Task, TaskGroup } from "../../type";
 import TaskInput from "./TaskInput";
-import TaskList from "./TaskList";
-import TaskGroupSidebar from "./TaskGroupSidebar";
-import { getTaskGroups } from "../../tauri/to_do_list_api";
+import BoardColumn from "./BoardColumn";
+import TaskCard from "./TaskCard"; // For DragOverlay
+import { getTaskGroups, moveTaskToGroup, createTaskGroup } from "../../tauri/to_do_list_api";
 
 interface ToDoListViewProps {
 	tasks: Task[];
@@ -11,10 +23,11 @@ interface ToDoListViewProps {
 }
 
 const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
-	const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 	const [taskGroups, setTaskGroups] = useState<TaskGroup[]>([]);
+	const [activeId, setActiveId] = useState<string | null>(null);
+	const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+	const [newGroupName, setNewGroupName] = useState("");
 
-	// Refresh groups when tasks change (might affect group counts or if we reload groups)
 	const fetchGroups = () => {
 		getTaskGroups().then(setTaskGroups).catch(console.error);
 	};
@@ -23,27 +36,174 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 		fetchGroups();
 	}, [tasks]);
 
-	const filteredTasks = selectedGroupId
-		? tasks.filter(task => {
-			const group = taskGroups.find(g => g.id === selectedGroupId);
-			return group ? group.tasks.includes(task.id) : false;
+	const sensors = useSensors(
+		useSensor(PointerSensor, {
+			activationConstraint: {
+				distance: 5, // Requires 5px movement to start drag, prevents accidental drags
+			},
+		}),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
 		})
-		: tasks;
+	);
+
+	const handleDragStart = (event: DragStartEvent) => {
+		setActiveId(event.active.id as string);
+	};
+
+	const handleDragEnd = async (event: DragEndEvent) => {
+		const { active, over } = event;
+		setActiveId(null);
+
+		if (!over) return;
+
+		const activeTaskId = active.id as string;
+		const overId = over.id as string;
+
+		// Find source group
+		let sourceGroup = taskGroups.find(g => g.tasks.includes(activeTaskId));
+		// Check unassigned if not found in groups
+		if (!sourceGroup) {
+			const assignedTaskIds = new Set(taskGroups.flatMap(g => g.tasks));
+			if (!assignedTaskIds.has(activeTaskId)) {
+				sourceGroup = { id: "unassigned", name: "Unassigned", tasks: [], created_at: "" };
+			}
+		}
+
+		if (!sourceGroup) return;
+
+		// Find target group
+		// If over.id is a group ID (dropped on column)
+		let targetGroup = taskGroups.find(g => g.id === overId);
+
+		// If not dropped on a group directly, maybe dropped on a task?
+		if (!targetGroup) {
+			targetGroup = taskGroups.find(g => g.tasks.includes(overId));
+		}
+
+		// Cannot drop into "unassigned" (no group ID to move to)
+		if (!targetGroup && overId === "unassigned") {
+			return;
+		}
+
+		if (targetGroup && sourceGroup.id !== targetGroup.id) {
+			// Moved to a different group
+			try {
+				await moveTaskToGroup(activeTaskId, targetGroup.id);
+				onRefresh(); // Refresh to update backend state
+			} catch (e) {
+				console.error("Failed to move task", e);
+			}
+		}
+	};
+
+	const handleCreateGroup = async () => {
+		if (!newGroupName.trim()) return;
+		try {
+			await createTaskGroup(newGroupName);
+			setNewGroupName("");
+			setIsCreatingGroup(false);
+			fetchGroups(); // Refresh groups immediately
+		} catch (e) {
+			console.error("Failed to create group", e);
+		}
+	};
+
+	// Helper to get task object for overlay
+	const activeTask = tasks.find(t => t.id === activeId);
+
+	// Calculate unassigned tasks
+	const assignedTaskIds = new Set(taskGroups.flatMap(g => g.tasks));
+	const unassignedTasks = tasks.filter(t => !assignedTaskIds.has(t.id));
 
 	return (
-		<div className="h-full w-full flex flex-row bg-bg-secondary">
-			<TaskGroupSidebar
-				selectedGroupId={selectedGroupId}
-				onSelectGroup={setSelectedGroupId}
-				groups={taskGroups}
-				onRefreshGroups={fetchGroups}
-			/>
-			<div className="h-full flex-1 flex justify-center items-start py-8 overflow-y-auto">
-				<div className="w-full max-w-4xl flex flex-col justify-start items-center space-y-6 px-4">
-					<TaskInput onRefresh={onRefresh} taskGroups={taskGroups} />
-					<TaskList tasks={filteredTasks} onRefresh={onRefresh} taskGroups={taskGroups} />
-				</div>
+		<div className="h-full w-full flex flex-col bg-bg-secondary p-4 overflow-hidden">
+			{/* Task Input Area */}
+			<div className="w-full max-w-4xl mx-auto mb-6 shrink-0">
+				<TaskInput onRefresh={onRefresh} taskGroups={taskGroups} />
 			</div>
+
+			{/* Kanban Board Area */}
+			<DndContext
+				sensors={sensors}
+				collisionDetection={closestCorners}
+				onDragStart={handleDragStart}
+				onDragEnd={handleDragEnd}
+			>
+				<div className="flex-1 overflow-x-auto overflow-y-hidden">
+					<div className="flex h-full pb-4 items-start gap-4">
+						{unassignedTasks.length > 0 && (
+							<BoardColumn
+								group={{ id: "unassigned", name: "Unassigned", tasks: [], created_at: "" }}
+								tasks={unassignedTasks}
+								onRefresh={onRefresh}
+								taskGroups={taskGroups}
+							/>
+						)}
+
+						{taskGroups.map(group => {
+							// Filter tasks for this group
+							// Note: We need to ensure tasks are in order if backend supports it.
+							// Currently just filtering from main list.
+							const groupTasks = tasks.filter(t => group.tasks.includes(t.id));
+
+							return (
+								<BoardColumn
+									key={group.id}
+									group={group}
+									tasks={groupTasks}
+									onRefresh={onRefresh}
+									taskGroups={taskGroups}
+								/>
+							);
+						})}
+
+						{/* Add Group Button/Form */}
+						<div
+							className={`w-80 min-w-[320px] bg-bg-tertiary/30 rounded-lg p-2 flex-shrink-0 border-2 border-dashed border-border-primary flex flex-col justify-center items-center h-24 hover:bg-bg-tertiary transition-colors cursor-pointer ${isCreatingGroup ? 'h-auto cursor-default' : ''}`}
+							onClick={() => !isCreatingGroup && setIsCreatingGroup(true)}
+						>
+							{isCreatingGroup ? (
+								<div className="w-full p-2 space-y-2">
+									<input
+										autoFocus
+										className="w-full p-2 rounded border border-border-primary bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-secondary"
+										placeholder="Group Name"
+										value={newGroupName}
+										onChange={e => setNewGroupName(e.target.value)}
+										onKeyDown={e => { if (e.key === 'Enter') handleCreateGroup() }}
+										onClick={e => e.stopPropagation()}
+									/>
+									<div className="flex gap-2">
+										<button
+											onClick={(e) => { e.stopPropagation(); handleCreateGroup(); }}
+											className="bg-accent-secondary text-text-on-accent px-3 py-1 rounded text-sm hover:bg-accent-hover"
+										>
+											Add
+										</button>
+										<button
+											onClick={(e) => { e.stopPropagation(); setIsCreatingGroup(false); }}
+											className="text-text-secondary text-sm hover:text-text-primary"
+										>
+											Cancel
+										</button>
+									</div>
+								</div>
+							) : (
+								<span className="text-text-secondary font-medium">+ Add New List</span>
+							)}
+						</div>
+					</div>
+				</div>
+
+				<DragOverlay>
+					{activeTask ? (
+						<div className="transform scale-105 opacity-90 cursor-grabbing">
+							<TaskCard task={activeTask} onRefresh={() => { }} taskGroups={taskGroups} />
+						</div>
+					) : null}
+				</DragOverlay>
+			</DndContext>
 		</div>
 	);
 };

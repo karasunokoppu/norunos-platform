@@ -81,50 +81,74 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
 
     return (
         <div
-            className="w-full bg-bg-primary text-text-primary border-b border-border-primary"
+            className="w-full bg-bg-primary text-text-primary rounded-md shadow-sm border border-border-primary hover:shadow-md hover:border-accent-secondary/50 transition-all duration-200 relative group/card"
             onContextMenu={handleContextMenu}
         >
-            <div className="flex flex-row items-center p-2">
+            <div className="flex flex-row items-start p-3 gap-3">
                 <input
                     type="checkbox"
                     checked={task.completed}
                     onChange={handleToggleComplete}
-                    className="mr-3 h-5 w-5"
+                    className="mt-1 h-4 w-4 rounded border-border-secondary text-accent-secondary focus:ring-accent-secondary cursor-pointer flex-shrink-0"
                 />
+
                 <div
+                    className="flex-1 flex flex-col gap-2 min-w-0"
                     onClick={() => setIsOpened(!isOpened)}
-                    className="w-full px-2 flex flex-row justify-between"
                 >
-                    <div className="w-full flex flex-row items-center gap-3">
-                        <div className="w-full flex flex-col gap-2">
-                            <div className="w-full ">
-                            <label className="font-medium max-w-lg">{task.description}</label>
-                                {!isOpened && task.subtasks && task.subtasks.length > 0 && (
-                                    <span className="bg-bg-tertiary rounded-sm px-2 py-1 mx-2 text-xs text-text-primary">
-                                        {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
-                                    </span>
+                    {/* Description */}
+                    <div className="w-full">
+                        <label className={`text-sm font-medium leading-relaxed break-words block cursor-pointer ${task.completed ? 'text-text-disabled line-through' : 'text-text-primary'}`}>
+                            {task.description}
+                        </label>
+                    </div>
+
+                    {/* Metadata Badges */}
+                    <div className="flex flex-wrap gap-2 items-center">
+                        {/* Subtasks Badge */}
+                        {task.subtasks && task.subtasks.length > 0 && (
+                            <div className={`flex items-center text-xs px-1.5 py-0.5 rounded border ${task.subtasks.every(s => s.completed)
+                                    ? 'bg-accent-light text-accent-secondary border-accent-secondary/20'
+                                    : 'bg-bg-tertiary text-text-secondary border-transparent'
+                                }`}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                    <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                                </svg>
+                                {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                            </div>
+                        )}
+
+                        {/* Date Badges */}
+                        {(task.start_datetime || task.end_datetime) && (
+                            <div className="flex items-center gap-1">
+                                {task.end_datetime && (
+                                    <div className={`flex items-center text-xs px-1.5 py-0.5 rounded border ${new Date(task.end_datetime) < new Date() && !task.completed
+                                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                            : 'bg-bg-tertiary text-text-secondary border-transparent'
+                                        }`}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" />
+                                        </svg>
+                                        {new Date(task.end_datetime).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}
+                                    </div>
                                 )}
                             </div>
-                            <div className="flex flex-row gap-2 text-sm text-text-secondary/65 justify-between">
-                                <label>ID: {task.id.substring(0, 8)}...</label>
-                                <div className="flex flex-row gap-4">
-                                    {task.start_datetime && (<label>開始日:{task.start_datetime?.split('T')[0]}</label>)}
-                                    {task.end_datetime && (<label>終了日:{task.end_datetime?.split('T')[0]}</label>)}
-                                </div>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
-            {
-                isOpened && (
+
+            {/* Subtasks Expansion */}
+            {isOpened && (
+                <div className="px-3 pb-3 pt-0 animate-in slide-in-from-top-1 duration-200">
+                    <div className="border-t border-border-primary/50 my-2"></div>
                     <SubTaskCard
                         subtasks={task.subtasks}
                         isOpened={isOpened}
                         onUpdate={handleSubtaskUpdate}
                     />
-                )
-            }
+                </div>
+            )}
 
             {
                 contextMenu && (
@@ -144,8 +168,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
                 onSave={handleSaveEdit}
                 taskGroups={taskGroups}
             />
-
-        </div >
+        </div>
     );
 };
 
