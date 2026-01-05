@@ -95,32 +95,26 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
                     onClick={() => setIsOpened(!isOpened)}
                     className="w-full px-2 flex flex-row justify-between"
                 >
-                    <div className="w-fit flex flex-row items-center gap-3">
-                        <div className="flex flex-col gap-2">
+                    <div className="w-full flex flex-row items-center gap-3">
+                        <div className="w-full flex flex-col gap-2">
+                            <div className="w-full ">
                             <label className="font-medium max-w-lg">{task.description}</label>
-                            <div className="flex flex-row gap-2 text-xs text-text-secondary">
-                                <label>ID: {task.id.substring(0, 8)}...</label>
+                                {!isOpened && task.subtasks && task.subtasks.length > 0 && (
+                                    <span className="bg-bg-tertiary rounded-sm px-2 py-1 mx-2 text-xs text-text-primary">
+                                        {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                                    </span>
+                                )}
                             </div>
-                        </div>
-                        {!isOpened && task.subtasks && task.subtasks.length > 0 && (
-                            <span className="bg-bg-tertiary rounded-sm px-2 py-1 mx-2 text-xs text-text-primary">
-                                {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
-                            </span>
-                        )}
-                    </div>
-                    <div>
-                        <div className="grid">
-                            <label className="text-sm text-text-secondary">開始日:{task.start_datetime?.split('T')[0]}</label>
-                            <label className="text-sm text-text-secondary">終了日:{task.end_datetime?.split('T')[0]}</label>
+                            <div className="flex flex-row gap-2 text-sm text-text-secondary/65 justify-between">
+                                <label>ID: {task.id.substring(0, 8)}...</label>
+                                <div className="flex flex-row gap-4">
+                                    {task.start_datetime && (<label>開始日:{task.start_datetime?.split('T')[0]}</label>)}
+                                    {task.end_datetime && (<label>終了日:{task.end_datetime?.split('T')[0]}</label>)}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <button
-                    onClick={(e) => handleDelete(e)}
-                    className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
-                >
-                    削除
-                </button>
             </div>
             {
                 isOpened && (
