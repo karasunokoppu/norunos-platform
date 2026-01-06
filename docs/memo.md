@@ -1,14 +1,18 @@
-# biome 
-## format
+# biome
+
+## フォーマット (format)
+
 npx @biomejs/biome format --write ./src/*
 
-## lint
+## リント (lint)
+
 npx @biomejs/biome lint --write ./src/*
 
-## check
+## チェック (check)
+
 npx @biomejs/biome check --write ./src/*
 
-# How to use NorunoContextMenu
+# NorunoContextMenu の使い方
 
 1. コンテキストメニュー用のデータ管理設定
 
@@ -20,7 +24,7 @@ const [contextMenu, setContextMenu] = React.useState<{
 } | null>(null); 
 ```
 
-2. コンテキストメニューの配置
+1. コンテキストメニューの配置
 
 ```tsx
 {contextMenu && (
@@ -30,11 +34,11 @@ const [contextMenu, setContextMenu] = React.useState<{
         onClose={() => setContextMenu(null)}
         items={[
             {
-                label: "Rename",
+                label: "Rename", // 名前変更
                 onClick: () => {},
             },
             {
-                label: "Delete",
+                label: "Delete", // 削除
                 danger: true,
                 onClick: () => {},
             },
@@ -43,7 +47,7 @@ const [contextMenu, setContextMenu] = React.useState<{
 )}
 ```
 
-# How to use NorunoDropdown
+# NorunoDropdown の使い方
 
 1. ドロップダウンメニュー用のデータ管理設定
 
@@ -52,7 +56,7 @@ const tests = ["test01", "test02", "test03", "test04"];
 const [hoge, setHoge] = React.useState(tests[1]);
 ```
 
-2. ドロップダウンメニューの配置
+1. ドロップダウンメニューの配置
 
 ```tsx
 <NorunoDropdown
