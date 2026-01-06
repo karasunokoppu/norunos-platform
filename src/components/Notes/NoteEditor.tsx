@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import wikiLinkPlugin from "remark-wiki-link";
 import { saveNote, getBacklinks } from "../../tauri/notes_api";
 import { Network } from "lucide-react";
 import remarkBreaks from "remark-breaks";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface NoteEditorProps {
     path: string | null;
@@ -18,6 +20,11 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
     const [content, setContent] = useState(initialContent);
     const [isDirty, setIsDirty] = useState(false);
     const [backlinks, setBacklinks] = useState<string[]>([]);
+
+    // Refs for scroll synchronization
+    const editorRef = useRef<HTMLTextAreaElement>(null);
+    const previewRef = useRef<HTMLDivElement>(null);
+    const scrollSource = useRef<'editor' | 'preview' | null>(null);
 
     // Reset content when path changes
     useEffect(() => {
@@ -68,6 +75,35 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [path, content]);
 
+    // Scroll Sync Handlers
+    const handleEditorScroll = () => {
+        if (scrollSource.current === 'preview') return;
+
+        const editor = editorRef.current;
+        const preview = previewRef.current;
+
+        if (editor && preview) {
+            const percentage = editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
+            if (!isNaN(percentage)) {
+                preview.scrollTop = percentage * (preview.scrollHeight - preview.clientHeight);
+            }
+        }
+    };
+
+    const handlePreviewScroll = () => {
+        if (scrollSource.current === 'editor') return;
+
+        const editor = editorRef.current;
+        const preview = previewRef.current;
+
+        if (editor && preview) {
+            const percentage = preview.scrollTop / (preview.scrollHeight - preview.clientHeight);
+            if (!isNaN(percentage)) {
+                editor.scrollTop = percentage * (editor.scrollHeight - editor.clientHeight);
+            }
+        }
+    };
+
     if (!path) {
         return (
             <div className="flex-1 flex flex-col h-full bg-bg-secondary text-text-primary">
@@ -88,8 +124,6 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
             </div>
         );
     }
-
-    // ... (rest of component)
 
     return (
         <div className="flex-1 flex flex-col h-full bg-bg-secondary text-text-primary">
@@ -118,16 +152,26 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
                 {/* Editor */}
                 <div className="flex-1 h-full border-r border-border-primary flex flex-col">
                     <textarea
+                        ref={editorRef}
                         className="flex-1 w-full bg-bg-secondary text-text-primary p-4 outline-none resize-none font-mono text-sm leading-relaxed"
                         value={content}
                         onChange={handleChange}
+                        onScroll={handleEditorScroll}
+                        onMouseEnter={() => { scrollSource.current = 'editor'; }}
+                        onFocus={() => { scrollSource.current = 'editor'; }}
                         placeholder="# Write your markdown here..."
                     />
                 </div>
 
                 {/* Preview & Backlinks */}
                 <div className="flex-1 h-full flex flex-col overflow-hidden">
-                    <div className="flex-1 overflow-y-auto p-4 prose prose-invert max-w-none">
+                    <div
+                        ref={previewRef}
+                        onScroll={handlePreviewScroll}
+                        onMouseEnter={() => { scrollSource.current = 'preview'; }}
+                        onFocus={() => { scrollSource.current = 'preview'; }}
+                        className="flex-1 overflow-y-auto p-4 prose prose-invert max-w-none"
+                    >
                         <ReactMarkdown
                             remarkPlugins={[
                                 remarkGfm,
@@ -137,14 +181,18 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
                             urlTransform={(url) => url}
                             components={{
                                 code({ node, inline, className, children, ...props }: any) {
-                                    return !inline ? (
-                                        <pre className="bg-bg-tertiary p-2 rounded my-2 overflow-x-auto text-sm">
-                                            <code className={className} {...props}>
-                                                {children}
-                                            </code>
-                                        </pre>
+                                    const match = /language-(\w+)/.exec(className || '');
+                                    return !inline && match ? (
+                                        <SyntaxHighlighter
+                                            style={vscDarkPlus}
+                                            language={match[1]}
+                                            PreTag="div"
+                                            {...props}
+                                        >
+                                            {String(children).replace(/\n$/, '')}
+                                        </SyntaxHighlighter>
                                     ) : (
-                                        <code className="bg-bg-tertiary px-1 py-0.5 rounded text-sm text-accent-secondary" {...props}>
+                                        <code className={className ? className : "bg-bg-tertiary px-1 py-0.5 rounded text-sm text-accent-secondary"} {...props}>
                                             {children}
                                         </code>
                                     )
