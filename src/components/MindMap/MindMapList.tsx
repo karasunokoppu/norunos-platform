@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { MindMap } from "../../type/mindmap";
 import { Plus, Trash2 } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
+
 
 interface MindMapViewProps {
     onOpenMap: (map: MindMap) => void;
@@ -11,6 +13,8 @@ const MindMapList = ({ onOpenMap }: MindMapViewProps) => {
     const [maps, setMaps] = useState<MindMap[]>([]);
     const [isCreating, setIsCreating] = useState(false);
     const [newTitle, setNewTitle] = useState("");
+    const { showError, showSuccess } = useToast();
+
 
     const fetchMaps = async () => {
         try {
@@ -18,7 +22,9 @@ const MindMapList = ({ onOpenMap }: MindMapViewProps) => {
             setMaps(data);
         } catch (error) {
             console.error(error);
+            showError("マインドマップ一覧の取得に失敗しました");
         }
+
     };
 
     useEffect(() => {
@@ -37,9 +43,12 @@ const MindMapList = ({ onOpenMap }: MindMapViewProps) => {
             setIsCreating(false);
             fetchMaps();
             onOpenMap(newMap);
+            showSuccess("マインドマップを作成しました");
         } catch (error) {
             console.error(error);
+            showError("マインドマップの作成に失敗しました");
         }
+
     };
 
     const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -48,9 +57,12 @@ const MindMapList = ({ onOpenMap }: MindMapViewProps) => {
         try {
             await invoke("delete_mind_map", { id });
             fetchMaps();
+            showSuccess("マインドマップを削除しました");
         } catch (error) {
             console.error(error);
+            showError("マインドマップの削除に失敗しました");
         }
+
     };
 
     return (

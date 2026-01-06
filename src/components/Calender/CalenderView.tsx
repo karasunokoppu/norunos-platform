@@ -3,6 +3,8 @@ import { Task } from "../../type";
 import { ReadingActivity } from "../../type/calendar";
 import { getMemos, saveMemo, CalendarMemo } from "../../tauri/calendar_api";
 import { invoke } from "@tauri-apps/api/core";
+import { useToast } from "../../context/ToastContext";
+
 
 interface CalenderViewProps {
 	tasks?: Task[];
@@ -19,6 +21,8 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 	const [selectedDate, setSelectedDate] = useState<string | null>(null); // "YYYY-MM-DD"
 	const [memoContent, setMemoContent] = useState("");
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const { showError, showSuccess } = useToast();
+
 
 	const year = currentDate.getFullYear();
 	const month = currentDate.getMonth();
@@ -35,11 +39,20 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 		const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
 		const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
 
-		getMemos(startStr, endStr).then(setMemos).catch(console.error);
+		getMemos(startStr, endStr)
+			.then(setMemos)
+			.catch((e) => {
+				console.error(e);
+				showError("メモの取得に失敗しました");
+			});
 
 		invoke<ReadingActivity[]>("get_reading_activities", { startDate: startStr, endDate: endStr })
 			.then(setReadingActivities)
-			.catch(console.error);
+			.catch((e) => {
+				console.error(e);
+				showError("読書記録の取得に失敗しました");
+			});
+
 	}, [year, month]);
 
 	const calendarGrid = useMemo(() => {
@@ -76,25 +89,32 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 
 	const handleSaveMemo = async () => {
 		if (!selectedDate) return;
-		await saveMemo(selectedDate, memoContent);
-		// Refresh local state (optimistic or re-fetch)
-		// Simple re-fetch or manual update
-		const newMemo: CalendarMemo = { date: selectedDate, content: memoContent };
-		setMemos(prev => {
-			const idx = prev.findIndex(m => m.date === selectedDate);
-			if (idx >= 0) {
-				// Update
-				if (memoContent.trim() === "") return prev.filter(m => m.date !== selectedDate); // remove if empty
-				const next = [...prev];
-				next[idx] = newMemo;
-				return next;
-			} else {
-				if (memoContent.trim() === "") return prev;
-				return [...prev, newMemo];
-			}
-		});
-		setIsDialogOpen(false);
+		try {
+			await saveMemo(selectedDate, memoContent);
+			// Refresh local state (optimistic or re-fetch)
+			// Simple re-fetch or manual update
+			const newMemo: CalendarMemo = { date: selectedDate, content: memoContent };
+			setMemos(prev => {
+				const idx = prev.findIndex(m => m.date === selectedDate);
+				if (idx >= 0) {
+					// Update
+					if (memoContent.trim() === "") return prev.filter(m => m.date !== selectedDate); // remove if empty
+					const next = [...prev];
+					next[idx] = newMemo;
+					return next;
+				} else {
+					if (memoContent.trim() === "") return prev;
+					return [...prev, newMemo];
+				}
+			});
+			setIsDialogOpen(false);
+			showSuccess("メモを保存しました");
+		} catch (e) {
+			console.error(e);
+			showError("メモの保存に失敗しました");
+		}
 	};
+
 
 	return (
 		<div className="flex flex-col h-full w-full bg-bg-secondary text-text-primary p-4">

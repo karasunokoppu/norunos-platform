@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+// Mock ToastContext
+vi.mock('../../context/ToastContext', () => ({
+    useToast: () => ({
+        showToast: vi.fn(),
+        showError: vi.fn(),
+        showSuccess: vi.fn(),
+    }),
+}));
+
 import TaskInput from './TaskInput';
 
 // Mock the Tauri API

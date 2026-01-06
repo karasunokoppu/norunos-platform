@@ -1,6 +1,8 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { Task, TaskGroup } from "../../type";
 import { getTaskGroups, updateTask } from "../../tauri/to_do_list_api";
+import { useToast } from "../../context/ToastContext";
+
 
 interface GanttChartViewProps {
 	tasks: Task[];
@@ -21,11 +23,19 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 	const [pixelsPerDay, setPixelsPerDay] = useState(50);
 	const [showDependencies, setShowDependencies] = useState(true);
 	const [showInazuma, setShowInazuma] = useState(false);
+	const { showError } = useToast();
+
 
 
 	useEffect(() => {
-		getTaskGroups().then(setTaskGroups).catch(console.error);
+		getTaskGroups()
+			.then(setTaskGroups)
+			.catch((e) => {
+				console.error(e);
+				showError("タスクグループの取得に失敗しました");
+			});
 	}, [tasks]); // Re-fetch if tasks change, though groups might not.
+
 
 	// 1. Filter valid tasks
 	const validTasks = useMemo(() => {
@@ -143,7 +153,9 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 						setLinkMode(false);
 					} catch (err) {
 						console.error("Failed to add dependency", err);
+						showError("依存関係の追加に失敗しました");
 					}
+
 				} else {
 					// Toggle: Remove dependency if already exists
 					const newDeps = task.dependencies.filter(id => id !== linkSource);
@@ -155,7 +167,9 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 						setLinkMode(false);
 					} catch (err) {
 						console.error("Failed to remove dependency", err);
+						showError("依存関係の削除に失敗しました");
 					}
+
 				}
 			}
 			return;
@@ -260,7 +274,9 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 					if (onRefresh) onRefresh();
 				} catch (err) {
 					console.error("Failed to update task date", err);
+					showError("タスクの日付更新に失敗しました");
 				}
+
 			}
 		}
 

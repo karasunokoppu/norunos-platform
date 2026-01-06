@@ -18,6 +18,7 @@ import TaskInput from "./TaskInput";
 import BoardColumn from "./BoardColumn";
 import TaskCard from "./TaskCard"; // For DragOverlay
 import { getTaskGroups, moveTaskToGroup, createTaskGroup } from "../../tauri/to_do_list_api";
+import { useToast } from "../../context/ToastContext";
 
 interface ToDoListViewProps {
 	tasks: Task[];
@@ -29,9 +30,15 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 	const [newGroupName, setNewGroupName] = useState("");
+	const { showError, showSuccess } = useToast();
 
 	const fetchGroups = () => {
-		getTaskGroups().then(setTaskGroups).catch(console.error);
+		getTaskGroups()
+			.then(setTaskGroups)
+			.catch((e) => {
+				console.error(e);
+				showError("グループの取得に失敗しました");
+			});
 	};
 
 	useEffect(() => {
@@ -105,6 +112,7 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 				onRefresh(); // Refresh to update backend state
 			} catch (e) {
 				console.error("Failed to move task", e);
+				showError("タスクの移動に失敗しました");
 			}
 		}
 	};
@@ -116,8 +124,10 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 			setNewGroupName("");
 			setIsCreatingGroup(false);
 			fetchGroups(); // Refresh groups immediately
+			showSuccess("グループを作成しました");
 		} catch (e) {
 			console.error("Failed to create group", e);
+			showError("グループの作成に失敗しました");
 		}
 	};
 

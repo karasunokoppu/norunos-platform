@@ -4,6 +4,8 @@ import NoteEditor from "./NoteEditor";
 import GraphView from "./GraphView";
 import { getNotesTree, readNote, createNote, createFolder, deleteItem, renameItem, FileNode } from "../../tauri/notes_api";
 import FolderSelectDialog from "./FolderSelectDialog";
+import { useToast } from "../../context/ToastContext";
+
 
 const NotesView: React.FC = () => {
 	const [fileTree, setFileTree] = useState<FileNode[]>([]);
@@ -12,6 +14,8 @@ const NotesView: React.FC = () => {
 	const [showFolderDialog, setShowFolderDialog] = useState(false);
 	const [pendingNoteName, setPendingNoteName] = useState<string | null>(null);
 	const [showGraph, setShowGraph] = useState(false);
+	const { showError, showSuccess } = useToast();
+
 
 	const refreshTree = async () => {
 		try {
@@ -19,7 +23,9 @@ const NotesView: React.FC = () => {
 			setFileTree(tree);
 		} catch (e) {
 			console.error("Failed to refresh tree", e);
+			showError("ファイルツリーの取得に失敗しました");
 		}
+
 	};
 
 	useEffect(() => {
@@ -34,8 +40,9 @@ const NotesView: React.FC = () => {
 			setFileContent(content);
 		} catch (e) {
 			console.error("Failed to read file", e);
-			alert("Failed to read file");
+			showError("ファイルの読み込みに失敗しました");
 		}
+
 	};
 
 	const handleCreateFile = async (parentPath: string) => {
@@ -44,9 +51,11 @@ const NotesView: React.FC = () => {
 		try {
 			await createNote(parentPath, name);
 			await refreshTree();
+			showSuccess("ノートを作成しました");
 		} catch (e) {
-			alert("Failed to create note: " + e);
+			showError("ノートの作成に失敗しました: " + e);
 		}
+
 	};
 
 	const handleCreateFolder = async (parentPath: string) => {
@@ -55,9 +64,11 @@ const NotesView: React.FC = () => {
 		try {
 			await createFolder(parentPath, name);
 			await refreshTree();
+			showSuccess("フォルダを作成しました");
 		} catch (e) {
-			alert("Failed to create folder: " + e);
+			showError("フォルダの作成に失敗しました: " + e);
 		}
+
 	};
 
 	const handleDelete = async (path: string) => {
@@ -69,9 +80,11 @@ const NotesView: React.FC = () => {
 				setFileContent("");
 			}
 			await refreshTree();
+			showSuccess("削除しました");
 		} catch (e) {
-			alert("Failed to delete item: " + e);
+			showError("削除に失敗しました: " + e);
 		}
+
 	};
 
 	const findPathByName = (nodes: FileNode[], name: string): string | null => {
@@ -132,9 +145,11 @@ const NotesView: React.FC = () => {
 				setCurrentFile(newPath);
 			}
 			await refreshTree();
+			showSuccess("名前を変更しました");
 		} catch (e) {
-			alert("Failed to rename item: " + e);
+			showError("名前の変更に失敗しました: " + e);
 		}
+
 	};
 
 	return (

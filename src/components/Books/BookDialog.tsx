@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Book } from "../../type/books";
+import { useToast } from "../../context/ToastContext";
+
 
 interface BookDialogProps {
     isOpen: boolean;
@@ -15,6 +17,8 @@ const BookDialog = ({ isOpen, onClose, onSave, initialBook }: BookDialogProps) =
     const [status, setStatus] = useState(initialBook?.status || "To Read");
     const [totalPages, setTotalPages] = useState(initialBook?.total_pages || 0);
     const [coverPath, setCoverPath] = useState(initialBook?.cover_image_path || "");
+    const { showError, showSuccess } = useToast();
+
 
     if (!isOpen) return null;
 
@@ -41,10 +45,12 @@ const BookDialog = ({ isOpen, onClose, onSave, initialBook }: BookDialogProps) =
             }
             onSave(savedBook);
             onClose();
+            showSuccess("本を保存しました");
         } catch (error) {
             console.error("Failed to save book:", error);
-            alert("Failed to save book");
+            showError("本の保存に失敗しました");
         }
+
     };
 
     return (

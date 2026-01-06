@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Book } from "../../type/books";
 import { Plus } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
+
 
 // Placeholder components
 const BookItem = ({ book, onClick }: { book: Book; onClick: (book: Book) => void }) => (
@@ -39,6 +41,8 @@ const BooksView = () => {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [isDetailOpen, setIsDetailOpen] = useState(false);
 	const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+	const { showError } = useToast();
+
 
 	const fetchBooks = async () => {
 		try {
@@ -46,7 +50,9 @@ const BooksView = () => {
 			setBooks(data);
 		} catch (error) {
 			console.error("Failed to fetch books:", error);
+			showError("本の一覧の取得に失敗しました");
 		}
+
 	};
 
 	useEffect(() => {

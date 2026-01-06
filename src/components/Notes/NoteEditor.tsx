@@ -7,6 +7,8 @@ import { Network } from "lucide-react";
 import remarkBreaks from "remark-breaks";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useToast } from "../../context/ToastContext";
+
 
 interface NoteEditorProps {
     path: string | null;
@@ -20,6 +22,8 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
     const [content, setContent] = useState(initialContent);
     const [isDirty, setIsDirty] = useState(false);
     const [backlinks, setBacklinks] = useState<string[]>([]);
+    const { showError, showSuccess } = useToast();
+
 
     // Refs for scroll synchronization
     const editorRef = useRef<HTMLTextAreaElement>(null);
@@ -40,7 +44,9 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
                 .catch((err) => {
                     console.error("Failed to fetch backlinks:", err);
                     setBacklinks([]);
+                    showError("バックリンクの取得に失敗しました");
                 });
+
         } else {
             setBacklinks([]);
         }
@@ -57,10 +63,12 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ path, initialContent, onSaveSuc
             await saveNote(path, content);
             setIsDirty(false);
             onSaveSuccess();
+            showSuccess("ノートを保存しました");
         } catch (e) {
             console.error("Failed to save note:", e);
-            alert("Failed to save note");
+            showError("ノートの保存に失敗しました");
         }
+
     };
 
     // Auto-save or Shortcut (Ctrl+S)

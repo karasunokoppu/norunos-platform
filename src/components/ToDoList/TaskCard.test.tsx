@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+// Mock ToastContext
+vi.mock('../../context/ToastContext', () => ({
+    useToast: () => ({
+        showToast: vi.fn(),
+        showError: vi.fn(),
+        showSuccess: vi.fn(),
+    }),
+}));
+
 import TaskCard from './TaskCard';
 import type { Task, TaskGroup } from '../../type';
 
@@ -26,14 +36,12 @@ describe('TaskCard', () => {
         completed: false,
         subtasks: [],
         progress: 0,
-        priority: 'medium',
-        start_datetime: null,
-        end_datetime: null,
+        start_datetime: undefined,
+        end_datetime: undefined,
         created_at: new Date().toISOString(),
-        updated_at: null,
-        deleted_at: null,
-        dependencies: [],
-        notification_minutes: [],
+        updated_at: undefined,
+        deleted_at: undefined,
+        dependencies: undefined,
         ...overrides,
     });
 
@@ -82,8 +90,8 @@ describe('TaskCard', () => {
     it('shows subtask count badge when subtasks exist', () => {
         const task = createMockTask({
             subtasks: [
-                { id: 'sub-1', description: 'Subtask 1', completed: true, created_at: '' },
-                { id: 'sub-2', description: 'Subtask 2', completed: false, created_at: '' },
+                { id: 'sub-1', description: 'Subtask 1', completed: true, created_at: '', order: 0 },
+                { id: 'sub-2', description: 'Subtask 2', completed: false, created_at: '', order: 1 },
             ],
         });
         render(<TaskCard task={task} onRefresh={mockOnRefresh} taskGroups={mockTaskGroups} />);
@@ -105,7 +113,7 @@ describe('TaskCard', () => {
         const user = userEvent.setup();
         const task = createMockTask({
             subtasks: [
-                { id: 'sub-1', description: 'Subtask 1', completed: false, created_at: '' },
+                { id: 'sub-1', description: 'Subtask 1', completed: false, created_at: '', order: 0 },
             ],
         });
         render(<TaskCard task={task} onRefresh={mockOnRefresh} taskGroups={mockTaskGroups} />);

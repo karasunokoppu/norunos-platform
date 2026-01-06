@@ -18,6 +18,8 @@ import "@xyflow/react/dist/style.css";
 import { invoke } from "@tauri-apps/api/core";
 import { MindMap } from "../../type/mindmap";
 import { ArrowLeft, Save } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
+
 
 // Custom Node Component with handles on all sides
 const CustomNode = ({ data }: { data: { label: string } }) => {
@@ -59,6 +61,8 @@ const MindMapEditor = ({ map, onBack }: MindMapEditorProps) => {
     const [editingNode, setEditingNode] = useState<Node | null>(null);
     const [editLabel, setEditLabel] = useState("");
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const { showError, showSuccess } = useToast();
+
 
     useEffect(() => {
         try {
@@ -67,7 +71,9 @@ const MindMapEditor = ({ map, onBack }: MindMapEditorProps) => {
             setEdges(content.edges || []);
         } catch (e) {
             console.error("Failed to parse map content", e);
+            showError("マインドマップの読み込みに失敗しました");
         }
+
     }, [map]);
 
     const onConnect = useCallback(
@@ -83,10 +89,12 @@ const MindMapEditor = ({ map, onBack }: MindMapEditorProps) => {
                 title,
                 content,
             });
-            // Optional: Show toast
+            showSuccess("マインドマップを保存しました");
         } catch (error) {
             console.error("Failed to save map", error);
+            showError("マインドマップの保存に失敗しました");
         }
+
     };
 
     const wrapperRef = useRef<HTMLDivElement>(null);

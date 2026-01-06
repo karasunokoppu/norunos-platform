@@ -3,6 +3,7 @@ import NorunoDatePicker from "../../ui/NorunoDatePicker";
 import NorunoDropdown from "../../ui/NorunoDropdown";
 import { createTask } from "../../tauri/to_do_list_api";
 import { CreateTaskPayload } from "../../type";
+import { useToast } from "../../context/ToastContext";
 
 interface TaskInputProps {
 	onRefresh: () => void;
@@ -22,6 +23,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 	//Group
 	// const [taskGroups, setTaskGroups] = useState<{ id: string, name: string }[]>([]); // Removed internal state
 	const [selectedGroupId, setSelectedGroupId] = useState("");
+	const { showError, showSuccess } = useToast();
 
 	useEffect(() => {
 		if (taskGroups.length > 0 && !selectedGroupId) {
@@ -48,8 +50,10 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 			setStartDate("");
 			setEndDate("");
 			setIsInputOpen(false);
+			showSuccess("タスクを作成しました");
 		} catch (e) {
 			console.error("Failed to create task", e);
+			showError("タスクの作成に失敗しました");
 		}
 	};
 
