@@ -1,24 +1,29 @@
-import React, { useState, useEffect } from "react";
 import {
-	DndContext,
-	DragOverlay,
 	closestCenter,
+	DndContext,
+	type DragEndEvent,
+	DragOverlay,
+	type DragStartEvent,
+	type DropAnimation,
+	defaultDropAnimationSideEffects,
 	KeyboardSensor,
 	PointerSensor,
 	useSensor,
 	useSensors,
-	DragStartEvent,
-	DragEndEvent,
-	defaultDropAnimationSideEffects,
-	DropAnimation,
-} from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Task, TaskGroup } from "../../type";
-import TaskInput from "./TaskInput";
+} from "@dnd-kit/core";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { useToast } from "../../context/ToastContext";
+import {
+	createTaskGroup,
+	getTaskGroups,
+	moveTaskToGroup,
+} from "../../tauri/to_do_list_api";
+import type { Task, TaskGroup } from "../../type";
 import BoardColumn from "./BoardColumn";
 import TaskCard from "./TaskCard"; // For DragOverlay
-import { getTaskGroups, moveTaskToGroup, createTaskGroup } from "../../tauri/to_do_list_api";
-import { useToast } from "../../context/ToastContext";
+import TaskInput from "./TaskInput";
 
 interface ToDoListViewProps {
 	tasks: Task[];
@@ -53,14 +58,14 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 		}),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
-		})
+		}),
 	);
 
 	const dropAnimation: DropAnimation = {
 		sideEffects: defaultDropAnimationSideEffects({
 			styles: {
 				active: {
-					opacity: '0.4',
+					opacity: "0.4",
 				},
 			},
 		}),
@@ -80,12 +85,17 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 		const overId = over.id as string;
 
 		// Find source group
-		let sourceGroup = taskGroups.find(g => g.tasks.includes(activeTaskId));
+		let sourceGroup = taskGroups.find((g) => g.tasks.includes(activeTaskId));
 		// Check unassigned if not found in groups
 		if (!sourceGroup) {
-			const assignedTaskIds = new Set(taskGroups.flatMap(g => g.tasks));
+			const assignedTaskIds = new Set(taskGroups.flatMap((g) => g.tasks));
 			if (!assignedTaskIds.has(activeTaskId)) {
-				sourceGroup = { id: "unassigned", name: "Unassigned", tasks: [], created_at: "" };
+				sourceGroup = {
+					id: "unassigned",
+					name: "Unassigned",
+					tasks: [],
+					created_at: "",
+				};
 			}
 		}
 
@@ -93,11 +103,11 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 
 		// Find target group
 		// If over.id is a group ID (dropped on column)
-		let targetGroup = taskGroups.find(g => g.id === overId);
+		let targetGroup = taskGroups.find((g) => g.id === overId);
 
 		// If not dropped on a group directly, maybe dropped on a task?
 		if (!targetGroup) {
-			targetGroup = taskGroups.find(g => g.tasks.includes(overId));
+			targetGroup = taskGroups.find((g) => g.tasks.includes(overId));
 		}
 
 		// Cannot drop into "unassigned" (no group ID to move to)
@@ -132,11 +142,11 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 	};
 
 	// Helper to get task object for overlay
-	const activeTask = tasks.find(t => t.id === activeId);
+	const activeTask = tasks.find((t) => t.id === activeId);
 
 	// Calculate unassigned tasks
-	const assignedTaskIds = new Set(taskGroups.flatMap(g => g.tasks));
-	const unassignedTasks = tasks.filter(t => !assignedTaskIds.has(t.id));
+	const assignedTaskIds = new Set(taskGroups.flatMap((g) => g.tasks));
+	const unassignedTasks = tasks.filter((t) => !assignedTaskIds.has(t.id));
 
 	return (
 		<div className="h-full w-full flex flex-col bg-bg-secondary p-4 overflow-hidden">
@@ -156,15 +166,22 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 					<div className="flex h-full pb-4 items-start gap-4">
 						{unassignedTasks.length > 0 && (
 							<BoardColumn
-								group={{ id: "unassigned", name: "Unassigned", tasks: [], created_at: "" }}
+								group={{
+									id: "unassigned",
+									name: "Unassigned",
+									tasks: [],
+									created_at: "",
+								}}
 								tasks={unassignedTasks}
 								onRefresh={onRefresh}
 								taskGroups={taskGroups}
 							/>
 						)}
 
-						{taskGroups.map(group => {
-							const groupTasks = tasks.filter(t => group.tasks.includes(t.id));
+						{taskGroups.map((group) => {
+							const groupTasks = tasks.filter((t) =>
+								group.tasks.includes(t.id),
+							);
 							return (
 								<BoardColumn
 									key={group.id}
@@ -178,7 +195,7 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 
 						{/* Add Group Button/Form */}
 						<div
-							className={`w-80 min-w-[320px] bg-bg-tertiary/30 rounded-lg p-2 flex-shrink-0 border-2 border-dashed border-border-primary flex flex-col justify-center items-center h-24 hover:bg-bg-tertiary transition-colors cursor-pointer ${isCreatingGroup ? 'h-auto cursor-default' : ''}`}
+							className={`w-80 min-w-[320px] bg-bg-tertiary/30 rounded-lg p-2 flex-shrink-0 border-2 border-dashed border-border-primary flex flex-col justify-center items-center h-24 hover:bg-bg-tertiary transition-colors cursor-pointer ${isCreatingGroup ? "h-auto cursor-default" : ""}`}
 							onClick={() => !isCreatingGroup && setIsCreatingGroup(true)}
 						>
 							{isCreatingGroup ? (
@@ -188,19 +205,27 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 										className="w-full p-2 rounded border border-border-primary bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-secondary"
 										placeholder="Group Name"
 										value={newGroupName}
-										onChange={e => setNewGroupName(e.target.value)}
-										onKeyDown={e => { if (e.key === 'Enter') handleCreateGroup() }}
-										onClick={e => e.stopPropagation()}
+										onChange={(e) => setNewGroupName(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") handleCreateGroup();
+										}}
+										onClick={(e) => e.stopPropagation()}
 									/>
 									<div className="flex gap-2">
 										<button
-											onClick={(e) => { e.stopPropagation(); handleCreateGroup(); }}
+											onClick={(e) => {
+												e.stopPropagation();
+												handleCreateGroup();
+											}}
 											className="bg-accent-secondary text-text-on-accent px-3 py-1 rounded text-sm hover:bg-accent-hover"
 										>
 											Add
 										</button>
 										<button
-											onClick={(e) => { e.stopPropagation(); setIsCreatingGroup(false); }}
+											onClick={(e) => {
+												e.stopPropagation();
+												setIsCreatingGroup(false);
+											}}
 											className="text-text-secondary text-sm hover:text-text-primary"
 										>
 											Cancel
@@ -208,7 +233,9 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 									</div>
 								</div>
 							) : (
-								<span className="text-text-secondary font-medium">+ Add New List</span>
+								<span className="text-text-secondary font-medium">
+									+ Add New List
+								</span>
 							)}
 						</div>
 					</div>
@@ -217,7 +244,11 @@ const ToDoListView: React.FC<ToDoListViewProps> = ({ tasks, onRefresh }) => {
 				<DragOverlay dropAnimation={dropAnimation}>
 					{activeTask ? (
 						<div className="transform rotate-2 scale-105 opacity-95 cursor-grabbing shadow-2xl rounded-md ring-2 ring-accent-secondary ring-opacity-50">
-							<TaskCard task={activeTask} onRefresh={() => { }} taskGroups={taskGroups} />
+							<TaskCard
+								task={activeTask}
+								onRefresh={() => {}}
+								taskGroups={taskGroups}
+							/>
 						</div>
 					) : null}
 				</DragOverlay>

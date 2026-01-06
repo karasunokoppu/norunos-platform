@@ -1,13 +1,13 @@
 import "./App.css";
-import { useEffect, useState } from "react";
-import MainField from "./MainField";
-import SideBar from "./SideBar";
-import { Task } from "./type";
-import { getTasks } from "./tauri/to_do_list_api";
 
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useEffect, useState } from "react";
 import TitleBar from "./components/TitleBar";
 import { ToastProvider, useToast } from "./context/ToastContext";
+import MainField from "./MainField";
+import SideBar from "./SideBar";
+import { getTasks } from "./tauri/to_do_list_api";
+import type { Task } from "./type";
 
 function AppContent() {
 	const [currentContent, setContent] = useState<string>("To Do List");
@@ -42,20 +42,31 @@ function AppContent() {
 		checkMaximized();
 
 		// Listen for resize events to update maximized state
-		const unlisten = appWindow.listen('tauri://resize', checkMaximized);
+		const unlisten = appWindow.listen("tauri://resize", checkMaximized);
 
 		return () => {
-			unlisten.then(f => f());
+			unlisten.then((f) => f());
 		};
 	}, []);
 
 	return (
-		<div className={`h-svh w-full flex flex-col overflow-hidden ${isMaximized ? 'p-0 bg-bg-primary' : 'bg-transparent p-1'}`}>
-			<div className={`flex-1 flex flex-col shadow-2xl overflow-hidden bg-bg-primary ${isMaximized ? 'rounded-none border-0' : 'rounded-lg border border-border-primary'}`}>
+		<div
+			className={`h-svh w-full flex flex-col overflow-hidden ${isMaximized ? "p-0 bg-bg-primary" : "bg-transparent p-1"}`}
+		>
+			<div
+				className={`flex-1 flex flex-col shadow-2xl overflow-hidden bg-bg-primary ${isMaximized ? "rounded-none border-0" : "rounded-lg border border-border-primary"}`}
+			>
 				<TitleBar isMaximized={isMaximized} />
 				<main className="flex-1 flex flex-row gap-0 overflow-hidden">
-					<SideBar currentContent={currentContent} onSelectContent={setContent} />
-					<MainField currentContent={currentContent} tasks={tasks} onRefresh={refreshTasks} />
+					<SideBar
+						currentContent={currentContent}
+						onSelectContent={setContent}
+					/>
+					<MainField
+						currentContent={currentContent}
+						tasks={tasks}
+						onRefresh={refreshTasks}
+					/>
 				</main>
 			</div>
 		</div>
@@ -71,4 +82,3 @@ function App() {
 }
 
 export default App;
-

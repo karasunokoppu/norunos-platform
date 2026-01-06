@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from "react";
-import NotesSidebar from "./NotesSidebar";
-import NoteEditor from "./NoteEditor";
-import GraphView from "./GraphView";
-import { getNotesTree, readNote, createNote, createFolder, deleteItem, renameItem, FileNode } from "../../tauri/notes_api";
-import FolderSelectDialog from "./FolderSelectDialog";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../context/ToastContext";
-
+import {
+	createFolder,
+	createNote,
+	deleteItem,
+	type FileNode,
+	getNotesTree,
+	readNote,
+	renameItem,
+} from "../../tauri/notes_api";
+import FolderSelectDialog from "./FolderSelectDialog";
+import GraphView from "./GraphView";
+import NoteEditor from "./NoteEditor";
+import NotesSidebar from "./NotesSidebar";
 
 const NotesView: React.FC = () => {
 	const [fileTree, setFileTree] = useState<FileNode[]>([]);
@@ -16,7 +24,6 @@ const NotesView: React.FC = () => {
 	const [showGraph, setShowGraph] = useState(false);
 	const { showError, showSuccess } = useToast();
 
-
 	const refreshTree = async () => {
 		try {
 			const tree = await getNotesTree();
@@ -25,7 +32,6 @@ const NotesView: React.FC = () => {
 			console.error("Failed to refresh tree", e);
 			showError("ファイルツリーの取得に失敗しました");
 		}
-
 	};
 
 	useEffect(() => {
@@ -42,7 +48,6 @@ const NotesView: React.FC = () => {
 			console.error("Failed to read file", e);
 			showError("ファイルの読み込みに失敗しました");
 		}
-
 	};
 
 	const handleCreateFile = async (parentPath: string) => {
@@ -55,7 +60,6 @@ const NotesView: React.FC = () => {
 		} catch (e) {
 			showError("ノートの作成に失敗しました: " + e);
 		}
-
 	};
 
 	const handleCreateFolder = async (parentPath: string) => {
@@ -68,7 +72,6 @@ const NotesView: React.FC = () => {
 		} catch (e) {
 			showError("フォルダの作成に失敗しました: " + e);
 		}
-
 	};
 
 	const handleDelete = async (path: string) => {
@@ -84,7 +87,6 @@ const NotesView: React.FC = () => {
 		} catch (e) {
 			showError("削除に失敗しました: " + e);
 		}
-
 	};
 
 	const findPathByName = (nodes: FileNode[], name: string): string | null => {
@@ -149,7 +151,6 @@ const NotesView: React.FC = () => {
 		} catch (e) {
 			showError("名前の変更に失敗しました: " + e);
 		}
-
 	};
 
 	return (
@@ -173,7 +174,7 @@ const NotesView: React.FC = () => {
 					<NoteEditor
 						path={currentFile}
 						initialContent={fileContent}
-						onSaveSuccess={() => { }}
+						onSaveSuccess={() => {}}
 						onNavigate={handleNavigate}
 						onToggleGraph={() => setShowGraph(true)}
 					/>
@@ -183,7 +184,10 @@ const NotesView: React.FC = () => {
 				isOpen={showFolderDialog}
 				folders={fileTree}
 				onSelect={handleFolderSelect}
-				onCancel={() => { setShowFolderDialog(false); setPendingNoteName(null); }}
+				onCancel={() => {
+					setShowFolderDialog(false);
+					setPendingNoteName(null);
+				}}
 			/>
 		</div>
 	);

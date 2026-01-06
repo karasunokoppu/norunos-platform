@@ -1,15 +1,15 @@
-import React from "react";
 import {
-	Command,
-	ListTodo,
-	ChartGantt,
-	LayoutDashboard,
-	Calendar,
-	Notebook,
 	Book,
 	Brain,
-	Settings
+	Calendar,
+	ChartGantt,
+	Command,
+	LayoutDashboard,
+	ListTodo,
+	Notebook,
+	Settings,
 } from "lucide-react";
+import React from "react";
 
 interface SideBarProps {
 	currentContent: string;
@@ -42,9 +42,13 @@ const SideBar: React.FC<SideBarProps> = ({
 		(isSideBarOpened ? "px-3 mx-2.5" : "px-0 mx-3 justify-center");
 
 	const getLinkClass = (active: boolean) => {
-		return buttonCss + " " + (active
-			? "bg-accent-primary/10 text-accent-primary font-medium"
-			: "hover:bg-bg-hover text-text-secondary hover:text-text-primary");
+		return (
+			buttonCss +
+			" " +
+			(active
+				? "bg-accent-primary/10 text-accent-primary font-medium"
+				: "hover:bg-bg-hover text-text-secondary hover:text-text-primary")
+		);
 	};
 
 	return (
@@ -52,19 +56,25 @@ const SideBar: React.FC<SideBarProps> = ({
 			{/* Header / Brand */}
 			<button
 				type="button"
-				className={`flex flex-row items-center mx-2.5 mt-3 mb-6 p-2 rounded-xl hover:bg-bg-hover transition-colors text-left group outline-none ${isSideBarOpened ? '' : 'justify-center'}`}
+				className={`flex flex-row items-center mx-2.5 mt-3 mb-6 p-2 rounded-xl hover:bg-bg-hover transition-colors text-left group outline-none ${isSideBarOpened ? "" : "justify-center"}`}
 				onClick={() => setIsSideBarOpened(!isSideBarOpened)}
 				title={isSideBarOpened ? "Collapse Sidebar" : "Expand Sidebar"}
 			>
-				<div className={`flex items-center justify-center p-2 rounded-lg bg-accent-primary/10 text-accent-primary transition-all duration-300 group-hover:bg-accent-primary/20 shrink-0`}>
+				<div
+					className={`flex items-center justify-center p-2 rounded-lg bg-accent-primary/10 text-accent-primary transition-all duration-300 group-hover:bg-accent-primary/20 shrink-0`}
+				>
 					<Command size={22} />
 				</div>
 
 				<div
-					className={`flex flex-col overflow-hidden transition-all duration-300 ${isSideBarOpened ? 'ml-3 opacity-100 max-w-[150px]' : 'opacity-0 max-w-0'}`}
+					className={`flex flex-col overflow-hidden transition-all duration-300 ${isSideBarOpened ? "ml-3 opacity-100 max-w-[150px]" : "opacity-0 max-w-0"}`}
 				>
-					<span className="font-bold text-base tracking-tight leading-none text-text-primary whitespace-nowrap">Noruno</span>
-					<span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-widest mt-1">Platform</span>
+					<span className="font-bold text-base tracking-tight leading-none text-text-primary whitespace-nowrap">
+						Noruno
+					</span>
+					<span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-widest mt-1">
+						Platform
+					</span>
 				</div>
 			</button>
 
@@ -79,7 +89,9 @@ const SideBar: React.FC<SideBarProps> = ({
 						title={!isSideBarOpened ? item.label : undefined}
 					>
 						<item.icon size={20} className="shrink-0" />
-						<span className={`text-sm whitespace-nowrap transition-all duration-300 ${isSideBarOpened ? 'ml-3 opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+						<span
+							className={`text-sm whitespace-nowrap transition-all duration-300 ${isSideBarOpened ? "ml-3 opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+						>
 							{item.label}
 						</span>
 					</button>
@@ -95,7 +107,9 @@ const SideBar: React.FC<SideBarProps> = ({
 					title={!isSideBarOpened ? "Settings" : undefined}
 				>
 					<Settings size={20} className="shrink-0" />
-					<span className={`ml-3 text-sm whitespace-nowrap transition-all duration-300 ${isSideBarOpened ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+					<span
+						className={`ml-3 text-sm whitespace-nowrap transition-all duration-300 ${isSideBarOpened ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+					>
 						Settings
 					</span>
 				</button>
