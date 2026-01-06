@@ -10,32 +10,37 @@ struct AppState {
     pool: SqlitePool,
 }
 
-async fn setup_pool(app_handle: &tauri::AppHandle) -> SqlitePool {
-    let app_data_dir = app_handle.path().app_data_dir();
-    if app_data_dir.is_err() {
-        panic!("Failed to get app data directory: {:?}", app_data_dir.err());
-    }
-    let db_path = app_data_dir.unwrap().join("norunos.db");
+async fn setup_pool(
+    app_handle: &tauri::AppHandle,
+) -> Result<SqlitePool, Box<dyn std::error::Error>> {
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {:?}", e))?;
+    let db_path = app_data_dir.join("norunos.db");
     println!("Database path: {}", db_path.display());
     if let Some(parent) = db_path.parent() {
-        std::fs::create_dir_all(parent).expect("Failed to create database directory");
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create database directory: {:?}", e))?;
     }
     let options = SqliteConnectOptions::new()
         .filename(&db_path)
         .create_if_missing(true);
-    SqlitePool::connect_with(options)
+    let pool = SqlitePool::connect_with(options)
         .await
-        .expect("Failed to connect to database")
+        .map_err(|e| format!("Failed to connect to database: {:?}", e))?;
+    Ok(pool)
 }
 
-pub async fn init_db(pool: &SqlitePool) {
+pub async fn init_db(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>> {
     commands::books::db::init_books_table(pool)
         .await
-        .expect("Failed to init books table");
+        .map_err(|e| format!("Failed to init books table: {:?}", e))?;
 
     commands::mindmap::db::init_mind_map_table(pool)
         .await
-        .expect("Failed to init mind_maps table");
+        .map_err(|e| format!("Failed to init mind_maps table: {:?}", e))?;
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -44,12 +49,14 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .setup(move |app| {
-            let pool = tauri::async_runtime::block_on(setup_pool(&app.handle()));
-            tauri::async_runtime::block_on(init_db(&pool));
+            let pool = tauri::async_runtime::block_on(setup_pool(&app.handle()))
+                .map_err(|e| format!("Database setup failed: {}", e))?;
+            tauri::async_runtime::block_on(init_db(&pool))
+                .map_err(|e| format!("Database init failed: {}", e))?;
             tauri::async_runtime::block_on(
                 commands::notification::scheduler::init_notification_log_table(&pool),
             )
-            .expect("Failed to init notification log");
+            .map_err(|e| format!("Notification log init failed: {:?}", e))?;
             tauri::async_runtime::spawn(commands::notification::scheduler::run_scheduler(
                 app.handle().clone(),
                 pool.clone(),

@@ -310,8 +310,10 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 						const completed = task.subtasks.filter(s => s.completed).length;
 						progressPercent = completed / task.subtasks.length;
 					} else {
-						progressPercent = (task.progress || (task.completed ? 100 : 0)) / 100;
+						// サブタスクがない場合: 完了済みなら100%、そうでなければprogress値を使用
+						progressPercent = task.completed ? 1 : (task.progress || 0) / 100;
 					}
+
 					const progressX = x + (width * progressPercent);
 
 					layout.set(task.id, { x, endX, y: currentY, progressX });
@@ -503,8 +505,10 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({ tasks, onRefresh }) => 
 										const completed = task.subtasks.filter(s => s.completed).length;
 										progressPercent = (completed / task.subtasks.length) * 100;
 									} else {
-										progressPercent = task.progress || (task.completed ? 100 : 0);
+										// サブタスクがない場合: 完了済みなら100%、そうでなければprogress値を使用
+										progressPercent = task.completed ? 100 : (task.progress || 0);
 									}
+
 
 									const isLinkSource = linkMode && linkSource === task.id;
 
