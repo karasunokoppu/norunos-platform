@@ -12,6 +12,14 @@ npx @biomejs/biome lint --write ./src/*
 
 npx @biomejs/biome check --write ./src/*
 
+## テスト
+
+- フロントエンド
+npm run test:run
+
+- バックエンド
+cargo test
+
 # NorunoContextMenu の使い方
 
 1. コンテキストメニュー用のデータ管理設定
