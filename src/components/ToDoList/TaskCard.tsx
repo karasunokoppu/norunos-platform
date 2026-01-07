@@ -110,6 +110,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
 				<div
 					className="flex-1 flex flex-col gap-2 min-w-0"
 					onClick={() => setIsOpened(!isOpened)}
+					onDoubleClick={(e) => {
+						e.stopPropagation();
+						handleEdit();
+					}}
 				>
 					{/* Description */}
 					<div className="w-full">
@@ -125,11 +129,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
 						{/* Subtasks Badge */}
 						{task.subtasks && task.subtasks.length > 0 && (
 							<div
-								className={`flex items-center text-xs px-1.5 py-0.5 rounded border ${
-									task.subtasks.every((s) => s.completed)
-										? "bg-accent-light text-accent-secondary border-accent-secondary/20"
-										: "bg-bg-tertiary text-text-secondary border-transparent"
-								}`}
+								className={`flex items-center text-xs px-1.5 py-0.5 rounded border ${task.subtasks.every((s) => s.completed)
+									? "bg-accent-light text-accent-secondary border-accent-secondary/20"
+									: "bg-bg-tertiary text-text-secondary border-transparent"
+									}`}
 							>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -157,12 +160,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
 							<div className="flex items-center gap-1">
 								{task.end_datetime && (
 									<div
-										className={`flex items-center text-xs px-1.5 py-0.5 rounded border ${
-											new Date(task.end_datetime) < new Date() &&
+										className={`flex items-center text-xs px-1.5 py-0.5 rounded border ${new Date(task.end_datetime) < new Date() &&
 											!task.completed
-												? "bg-red-500/10 text-red-400 border-red-500/20"
-												: "bg-bg-tertiary text-text-secondary border-transparent"
-										}`}
+											? "bg-red-500/10 text-red-400 border-red-500/20"
+											: "bg-bg-tertiary text-text-secondary border-transparent"
+											}`}
 									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
@@ -195,25 +197,34 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
 			</div>
 
 			{/* Subtasks Expansion */}
-			{isOpened && (
-				<div className="px-3 pb-3 pt-0 animate-in slide-in-from-top-1 duration-200">
-					<div className="border-t border-border-primary/50 my-2"></div>
-					<SubTaskCard
-						subtasks={task.subtasks}
-						isOpened={isOpened}
-						onUpdate={handleSubtaskUpdate}
-					/>
-				</div>
-			)}
+			{
+				isOpened && (
+					<div className="px-3 pb-3 pt-0 animate-in slide-in-from-top-1 duration-200">
+						<div className="border-t border-border-primary/50 my-2"></div>
+						{task.details && (
+							<div className="text-sm text-text-secondary whitespace-pre-wrap mb-4 px-1">
+								{task.details}
+							</div>
+						)}
+						<SubTaskCard
+							subtasks={task.subtasks}
+							isOpened={isOpened}
+							onUpdate={handleSubtaskUpdate}
+						/>
+					</div>
+				)
+			}
 
-			{contextMenu && (
-				<NorunoContextMenu
-					x={contextMenu.x}
-					y={contextMenu.y}
-					items={contextMenuItems}
-					onClose={() => setContextMenu(null)}
-				/>
-			)}
+			{
+				contextMenu && (
+					<NorunoContextMenu
+						x={contextMenu.x}
+						y={contextMenu.y}
+						items={contextMenuItems}
+						onClose={() => setContextMenu(null)}
+					/>
+				)
+			}
 
 			<EditTaskDialog
 				task={task}
@@ -222,7 +233,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onRefresh, taskGroups }) => {
 				onSave={handleSaveEdit}
 				taskGroups={taskGroups}
 			/>
-		</div>
+		</div >
 	);
 };
 

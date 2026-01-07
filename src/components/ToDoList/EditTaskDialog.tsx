@@ -21,6 +21,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 	taskGroups,
 }) => {
 	const [description, setDescription] = useState(task.description);
+	const [details, setDetails] = useState(task.details || "");
 	// Format: "YYYY-MM-DD HH:mm" for internal state and DatePicker
 	const formatToPicker = (isoString?: string) => {
 		if (!isoString) return "";
@@ -39,6 +40,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 	useEffect(() => {
 		if (isOpen) {
 			setDescription(task.description);
+			setDetails(task.details || "");
 			setStartDate(formatToPicker(task.start_datetime));
 			setEndDate(formatToPicker(task.end_datetime));
 
@@ -63,6 +65,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 		const updatedTask = {
 			...task,
 			description,
+			details,
 			start_datetime: formatToISO(startDate),
 			end_datetime: formatToISO(endDate),
 		};
@@ -86,7 +89,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 	return (
 		<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
 			<div className="bg-bg-primary p-6 rounded-lg shadow-xl w-96 border border-border-primary text-text-primary">
-				<h3 className="text-lg font-bold mb-4">Edit Task</h3>
+				<h3 className="text-lg font-bold mb-4">Task Details</h3>
 
 				<div className="mb-4">
 					<label className="block text-sm font-medium mb-1">Task Name</label>
@@ -95,6 +98,15 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
 						className="w-full bg-bg-secondary border border-border-primary rounded px-3 py-2 focus:outline-none focus:border-accent-primary"
+					/>
+				</div>
+
+				<div className="mb-4">
+					<label className="block text-sm font-medium mb-1">Details</label>
+					<textarea
+						value={details}
+						onChange={(e) => setDetails(e.target.value)}
+						className="w-full bg-bg-secondary border border-border-primary rounded px-3 py-2 focus:outline-none focus:border-accent-primary min-h-[100px] resize-y"
 					/>
 				</div>
 

@@ -13,6 +13,7 @@ vi.mock("@tauri-apps/api/window", () => ({
 		unmaximize: vi.fn(),
 		close: vi.fn(),
 		isMaximized: vi.fn(() => Promise.resolve(false)),
+		listen: vi.fn(() => Promise.resolve(() => { })),
 	})),
 }));
 
