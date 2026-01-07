@@ -20,6 +20,7 @@ const BookDialog = ({
 	const [author, setAuthor] = useState(initialBook?.author || "");
 	const [status, setStatus] = useState(initialBook?.status || "To Read");
 	const [totalPages, setTotalPages] = useState(initialBook?.total_pages || 0);
+	const [currentPage, setCurrentPage] = useState(initialBook?.current_page || 0);
 	const [coverPath, setCoverPath] = useState(
 		initialBook?.cover_image_path || "",
 	);
@@ -38,6 +39,7 @@ const BookDialog = ({
 					author,
 					status,
 					totalPages,
+					currentPage,
 					coverImagePath: coverPath || null,
 				});
 			} else {
@@ -102,17 +104,33 @@ const BookDialog = ({
 							<option value="Read">読了</option>
 						</select>
 					</div>
-					<div>
-						<label className="block text-sm font-medium text-gray-700">
-							Total Pages
-						</label>
-						<input
-							type="number"
-							value={totalPages}
-							onChange={(e) => setTotalPages(parseInt(e.target.value))}
-							required
-							className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-						/>
+					<div className="flex gap-4">
+						<div className="flex-1">
+							<label className="block text-sm font-medium text-gray-700">
+								Total Pages
+							</label>
+							<input
+								type="number"
+								min="0"
+								value={totalPages}
+								onChange={(e) => setTotalPages(parseInt(e.target.value))}
+								required
+								className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+							/>
+						</div>
+						<div className="flex-1">
+							<label className="block text-sm font-medium text-gray-700">
+								Current Page
+							</label>
+							<input
+								type="number"
+								min="0"
+								max={totalPages}
+								value={currentPage}
+								onChange={(e) => setCurrentPage(parseInt(e.target.value))}
+								className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+							/>
+						</div>
 					</div>
 					<div>
 						<label className="block text-sm font-medium text-gray-700">

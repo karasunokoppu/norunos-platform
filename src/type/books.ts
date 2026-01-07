@@ -4,6 +4,7 @@ export interface Book {
 	author: string;
 	status: string; // "To Read" | "Reading" | "Read"
 	total_pages: number;
+	current_page: number;
 	cover_image_path: string | null;
 	created_at: string;
 	updated_at: string | null;

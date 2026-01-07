@@ -10,6 +10,7 @@ pub struct Book {
     pub author: String,
     pub status: String,
     pub total_pages: i32,
+    pub current_page: i32,
     pub cover_image_path: Option<String>,
     pub created_at: String,
     pub updated_at: Option<String>,
@@ -35,6 +36,7 @@ impl Book {
             author,
             status: "To Read".to_string(),
             total_pages,
+            current_page: 0,
             cover_image_path: None,
             created_at: Local::now().to_rfc3339(),
             updated_at: None,
@@ -51,6 +53,7 @@ pub async fn init_books_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
             author TEXT NOT NULL,
             status TEXT NOT NULL,
             total_pages INTEGER NOT NULL,
+            current_page INTEGER DEFAULT 0,
             cover_image_path TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT,
@@ -59,6 +62,12 @@ pub async fn init_books_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     )
     .execute(pool)
     .await?;
+
+    // Migration: Add current_page column if it doesn't exist
+    // We ignore excess errors here for simplicity (e.g. if column exists)
+    let _ = sqlx::query("ALTER TABLE books ADD COLUMN current_page INTEGER DEFAULT 0")
+        .execute(pool)
+        .await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS reading_memos (
