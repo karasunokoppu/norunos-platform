@@ -1,0 +1,83 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e7]:
+    - button "Minimize" [ref=e8]:
+      - img "Minimize" [ref=e9]
+    - button "Maximize" [ref=e10]:
+      - img "Maximize" [ref=e11]
+    - button "Close" [ref=e13]:
+      - img "Close" [ref=e14]
+  - main [ref=e17]:
+    - generic [ref=e18]:
+      - button "Noruno Platform" [ref=e19]:
+        - img [ref=e21]
+        - generic [ref=e23]:
+          - generic [ref=e24]: Noruno
+          - generic [ref=e25]: Platform
+      - generic [ref=e26]:
+        - button "To Do List" [ref=e27] [cursor=pointer]:
+          - img [ref=e28]
+          - generic [ref=e31]: To Do List
+        - button "Gantt Chart" [ref=e32] [cursor=pointer]:
+          - img [ref=e33]
+          - generic [ref=e35]: Gantt Chart
+        - button "Dashboard" [ref=e36] [cursor=pointer]:
+          - img [ref=e37]
+          - generic [ref=e42]: Dashboard
+        - button "Calender" [ref=e43] [cursor=pointer]:
+          - img [ref=e44]
+          - generic [ref=e46]: Calender
+        - button "Notes" [ref=e47] [cursor=pointer]:
+          - img [ref=e48]
+          - generic [ref=e50]: Notes
+        - button "Books" [ref=e51] [cursor=pointer]:
+          - img [ref=e52]
+          - generic [ref=e54]: Books
+        - button "MindMap" [ref=e55] [cursor=pointer]:
+          - img [ref=e56]
+          - generic [ref=e64]: MindMap
+      - button "Settings" [ref=e66] [cursor=pointer]:
+        - img [ref=e67]
+        - generic [ref=e70]: Settings
+    - generic [ref=e72]:
+      - generic [ref=e76]:
+        - textbox "タスクの説明を入力..." [ref=e77]
+        - button "タスク追加" [ref=e78]
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - generic [ref=e83]: Default Group
+            - generic [ref=e84]: "1"
+          - button "Test Task from E2E Task Details Task Name Test Task from E2E Details Task Group Start Date Select Start Date End Date Select End Date Cancel Save" [active] [ref=e87]:
+            - generic [ref=e88]:
+              - generic [ref=e89]:
+                - checkbox [ref=e90] [cursor=pointer]
+                - generic [ref=e93] [cursor=pointer]: Test Task from E2E
+              - generic [ref=e95]:
+                - heading "Task Details" [level=3] [ref=e96]
+                - generic [ref=e97]:
+                  - generic [ref=e98]: Task Name
+                  - textbox [ref=e99]: Test Task from E2E
+                - generic [ref=e100]:
+                  - generic [ref=e101]: Details
+                  - textbox [ref=e102]
+                - generic [ref=e103]:
+                  - generic [ref=e104]: Task Group
+                  - listbox [ref=e105]:
+                    - button "Default Group" [ref=e106]:
+                      - generic [ref=e107]: Default Group
+                      - img [ref=e108]
+                - generic [ref=e110]:
+                  - generic [ref=e111]: Start Date
+                  - generic [ref=e112] [cursor=pointer]: Select Start Date
+                - generic [ref=e113]:
+                  - generic [ref=e114]: End Date
+                  - generic [ref=e115] [cursor=pointer]: Select End Date
+                - generic [ref=e116]:
+                  - button "Cancel" [ref=e117]
+                  - button "Save" [ref=e118]
+        - generic [ref=e120] [cursor=pointer]: + Add New List
+      - status [ref=e121]
+```

@@ -97,9 +97,9 @@ const BookDialog = ({
 							onChange={(e) => setStatus(e.target.value)}
 							className="mt-1 block w-full border border-gray-300 rounded-md p-2"
 						>
-							<option value="To Read">To Read</option>
-							<option value="Reading">Reading</option>
-							<option value="Read">Read</option>
+							<option value="To Read">未読</option>
+							<option value="Reading">読書中</option>
+							<option value="Read">読了</option>
 						</select>
 					</div>
 					<div>

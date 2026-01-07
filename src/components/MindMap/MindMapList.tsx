@@ -63,7 +63,7 @@ const MindMapList = ({ onOpenMap }: MindMapViewProps) => {
 	return (
 		<div className="p-4 h-full bg-bg-secondary w-full text-text-primary">
 			<div className="flex justify-between items-center mb-6">
-				<h1 className="text-2xl font-bold text-text-primary">Mind Maps</h1>
+				<h1 className="text-2xl font-bold text-text-primary">マインドマップ</h1>
 				<button
 					onClick={() => setIsCreating(true)}
 					className="flex items-center gap-2 bg-accent-secondary text-white px-4 py-2 rounded hover:bg-accent-hover"

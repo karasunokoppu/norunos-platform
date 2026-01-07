@@ -236,7 +236,7 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 			{isDialogOpen && (
 				<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
 					<div className="bg-bg-primary p-6 rounded-lg shadow-xl w-96 border border-border-primary">
-						<h3 className="text-lg font-bold mb-4">Memo: {selectedDate}</h3>
+						<h3 className="text-lg font-bold mb-4">メモ: {selectedDate}</h3>
 						<textarea
 							className="w-full h-32 bg-bg-secondary text-text-primary border border-border-primary rounded p-2 mb-4 focus:outline-none focus:border-accent-primary resize-none"
 							value={memoContent}

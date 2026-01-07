@@ -27,9 +27,9 @@ const ReadingMemoEditor = ({
 		<div className="flex flex-col h-full border rounded-lg overflow-hidden bg-white">
 			<div className="flex justify-between items-center bg-gray-100 p-2 border-b">
 				<div className="flex items-center gap-4">
-					<span className="font-bold text-sm">Memo</span>
+					<span className="font-bold text-sm">メモ</span>
 					<div className="flex items-center gap-2">
-						<label className="text-xs text-gray-600">Page:</label>
+						<label className="text-xs text-gray-600">ページ:</label>
 						<input
 							type="number"
 							value={pageNumber}
@@ -43,13 +43,13 @@ const ReadingMemoEditor = ({
 						className={`px-3 py-1 text-sm rounded ${!isPreview ? "bg-blue-100 text-blue-700" : "text-gray-600"}`}
 						onClick={() => setIsPreview(false)}
 					>
-						Write
+						編集
 					</button>
 					<button
 						className={`px-3 py-1 text-sm rounded ${isPreview ? "bg-blue-100 text-blue-700" : "text-gray-600"}`}
 						onClick={() => setIsPreview(true)}
 					>
-						Preview
+						プレビュー
 					</button>
 				</div>
 			</div>
@@ -60,7 +60,7 @@ const ReadingMemoEditor = ({
 						className="w-full h-full p-2 border-none outline-none resize-none font-mono text-sm"
 						value={content}
 						onChange={(e) => setContent(e.target.value)}
-						placeholder="Write your memo here... (Markdown supported)"
+						placeholder="ここにメモを入力... (Markdown対応)"
 					/>
 				) : (
 					<div className="prose prose-sm w-full max-w-none">
@@ -75,7 +75,7 @@ const ReadingMemoEditor = ({
 					onClick={onCancel}
 					className="px-4 py-2 text-gray-600 text-sm hover:text-gray-800"
 				>
-					Cancel
+					キャンセル
 				</button>
 
 				<button
@@ -83,7 +83,7 @@ const ReadingMemoEditor = ({
 					onClick={handleSave}
 					className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
 				>
-					Save Memo
+					メモを保存
 				</button>
 			</div>
 		</div>

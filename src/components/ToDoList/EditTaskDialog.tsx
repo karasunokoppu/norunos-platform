@@ -89,10 +89,10 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 	return (
 		<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
 			<div className="bg-bg-primary p-6 rounded-lg shadow-xl w-96 border border-border-primary text-text-primary">
-				<h3 className="text-lg font-bold mb-4">Task Details</h3>
+				<h3 className="text-lg font-bold mb-4">タスク詳細</h3>
 
 				<div className="mb-4">
-					<label className="block text-sm font-medium mb-1">Task Name</label>
+					<label className="block text-sm font-medium mb-1">タスク名</label>
 					<input
 						type="text"
 						value={description}
@@ -102,7 +102,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 				</div>
 
 				<div className="mb-4">
-					<label className="block text-sm font-medium mb-1">Details</label>
+					<label className="block text-sm font-medium mb-1">詳細</label>
 					<textarea
 						value={details}
 						onChange={(e) => setDetails(e.target.value)}
@@ -119,7 +119,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
                 // Let's replace the whole file content block for imports + the usage area. */}
 
 				<div className="mb-4">
-					<label className="block text-sm font-medium mb-1">Task Group</label>
+					<label className="block text-sm font-medium mb-1">タスクグループ</label>
 					<NorunoDropdown
 						options={taskGroups.map((g) => ({ label: g.name, value: g.id }))}
 						value={selectedGroupId}
@@ -129,7 +129,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 				</div>
 
 				<div className="mb-4">
-					<label className="block text-sm font-medium mb-1">Start Date</label>
+					<label className="block text-sm font-medium mb-1">開始日</label>
 					<div
 						className="w-full bg-bg-secondary border border-border-primary rounded px-3 py-2 cursor-pointer"
 						onClick={() => setIsStartDatePickerOpen(true)}
@@ -146,7 +146,7 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 				</div>
 
 				<div className="mb-4">
-					<label className="block text-sm font-medium mb-1">End Date</label>
+					<label className="block text-sm font-medium mb-1">期限</label>
 					<div
 						className="w-full bg-bg-secondary border border-border-primary rounded px-3 py-2 cursor-pointer"
 						onClick={() => setIsEndDatePickerOpen(true)}

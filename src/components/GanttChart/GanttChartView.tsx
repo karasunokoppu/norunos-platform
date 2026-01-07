@@ -435,7 +435,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
 			{/* Toolbar */}
 			<div className="flex items-center p-2 border-b border-border-primary bg-bg-primary gap-4">
 				<div className="flex items-center gap-2">
-					<span className="text-sm font-bold">Zoom:</span>
+					<span className="text-sm font-bold">表示倍率:</span>
 					<button
 						type="button"
 						className="px-2 py-1 bg-bg-tertiary rounded hover:bg-bg-hover border border-border-secondary"
@@ -459,7 +459,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
 						checked={showDependencies}
 						onChange={(e) => setShowDependencies(e.target.checked)}
 					/>
-					<span className="text-sm">Show Dependencies</span>
+					<span className="text-sm">依存関係を表示</span>
 				</label>
 				<label className="flex items-center gap-2 cursor-pointer select-none">
 					<input
@@ -467,7 +467,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
 						checked={showInazuma}
 						onChange={(e) => setShowInazuma(e.target.checked)}
 					/>
-					<span className="text-sm">Inazuma Line</span>
+					<span className="text-sm">イナズマ線を表示</span>
 				</label>
 				<button
 					type="button"
@@ -543,7 +543,7 @@ const GanttChartView: React.FC<GanttChartViewProps> = ({
 						</div>
 					))}
 					{groupedData.length === 0 && (
-						<div className="p-4 text-text-secondary">No scheduled tasks</div>
+						<div className="p-4 text-text-secondary">スケジュールされたタスクはありません</div>
 					)}
 				</div>
 

@@ -85,33 +85,32 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
 
 	const contextMenuItems: ContextMenuItem[] = contextMenu
 		? [
-				{
-					label: "Rename",
-					onClick: () => {
-						setEditingGroupId(contextMenu.group.id);
-						setEditingName(contextMenu.group.name);
-					},
+			{
+				label: "Rename",
+				onClick: () => {
+					setEditingGroupId(contextMenu.group.id);
+					setEditingName(contextMenu.group.name);
 				},
-				{
-					label: "Delete",
-					onClick: () => {
-						handleDelete(contextMenu.group);
-					},
-					danger: true,
+			},
+			{
+				label: "Delete",
+				onClick: () => {
+					handleDelete(contextMenu.group);
 				},
-			]
+				danger: true,
+			},
+		]
 		: [];
 
 	return (
 		<div className="w-64 bg-bg-primary h-full border-r border-border-primary flex flex-col p-4">
-			<h3 className="text-lg font-bold text-text-primary mb-4">Groups</h3>
+			<h3 className="text-lg font-bold text-text-primary mb-4">グループ</h3>
 
 			<div
-				className={`p-2 rounded cursor-pointer mb-2 ${
-					selectedGroupId === null
+				className={`p-2 rounded cursor-pointer mb-2 ${selectedGroupId === null
 						? "bg-accent-secondary text-text-on-accent"
 						: "text-text-primary hover:bg-bg-secondary"
-				}`}
+					}`}
 				onClick={() => onSelectGroup(null)}
 			>
 				All Tasks
@@ -121,11 +120,10 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
 				{groups.map((group) => (
 					<div
 						key={group.id}
-						className={`p-2 rounded cursor-pointer flex justify-between items-center group ${
-							selectedGroupId === group.id
+						className={`p-2 rounded cursor-pointer flex justify-between items-center group ${selectedGroupId === group.id
 								? "bg-accent-secondary text-text-on-accent"
 								: "text-text-primary hover:bg-bg-secondary"
-						}`}
+							}`}
 						onClick={() => onSelectGroup(group.id)}
 						onContextMenu={(e) => handleContextMenu(e, group)}
 					>

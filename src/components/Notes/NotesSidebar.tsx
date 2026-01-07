@@ -144,7 +144,7 @@ const NotesSidebar: React.FC<NotesSidebarProps> = ({
 			onContextMenu={(e) => e.preventDefault()}
 		>
 			<div className="p-2 border-b border-border-primary flex justify-between items-center text-text-primary font-bold text-sm">
-				<span>Notes</span>
+				<span>ノート</span>
 				<div className="flex gap-2">
 					<button
 						type="button"

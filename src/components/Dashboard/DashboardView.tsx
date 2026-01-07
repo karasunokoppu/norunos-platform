@@ -14,7 +14,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ tasks = [] }) => {
 
 	return (
 		<div className="h-full w-full p-8 bg-bg-secondary overflow-auto">
-			<h2 className="text-2xl font-bold text-text-primary mb-6">Dashboard</h2>
+			<h2 className="text-2xl font-bold text-text-primary mb-6">ダッシュボード</h2>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 				{/* Summary Cards */}

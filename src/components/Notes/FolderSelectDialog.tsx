@@ -78,7 +78,7 @@ const FolderSelectDialog: React.FC<FolderSelectDialogProps> = ({
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 			<div className="bg-bg-primary border border-border-primary w-96 max-h-[80vh] flex flex-col rounded shadow-lg">
 				<div className="p-4 border-b border-border-primary">
-					<h3 className="text-lg font-bold text-text-primary">Select Folder</h3>
+					<h3 className="text-lg font-bold text-text-primary">フォルダ選択</h3>
 				</div>
 
 				<div className="flex-1 overflow-y-auto p-2">
@@ -91,7 +91,7 @@ const FolderSelectDialog: React.FC<FolderSelectDialogProps> = ({
 							size={14}
 							className={`mr-2 ${selectedPath === "" ? "text-white" : "text-accent-secondary"}`}
 						/>
-						<span>Root (/)</span>
+						<span>ルート (/)</span>
 					</div>
 
 					{folders.map((node) => (
