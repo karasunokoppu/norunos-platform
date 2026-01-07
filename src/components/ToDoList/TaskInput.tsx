@@ -74,6 +74,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 						onChange={(e) => setDescription(e.target.value)}
 						onFocus={() => setIsInputOpen(true)}
 						className={`${inputCss} flex-1`}
+						aria-label="タスクの説明"
 					/>
 					<button
 						type="button"
@@ -154,6 +155,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 							value={details}
 							onChange={(e) => setDetails(e.target.value)}
 							className={`${inputCss} w-full`}
+							aria-label="タスクの詳細"
 						/>
 					</div>
 					<div className="flex justify-center">
@@ -161,7 +163,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 							type="button"
 							onClick={() => setIsInputOpen(false)}
 							className="w-full flex justify-center py-1 mt-2 hover:bg-bg-tertiary rounded text-text-tertiary"
-							aria-label="Collapse"
+							aria-label="入力を閉じる"
 						>
 							<svg
 								className="w-4 h-4"
