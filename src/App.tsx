@@ -3,6 +3,7 @@ import "./App.css";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useState } from "react";
 import TitleBar from "./components/TitleBar";
+import { GlobalErrorBoundary } from "./components/Error/GlobalErrorBoundary";
 import { ToastProvider, useToast } from "./context/ToastContext";
 import MainField from "./MainField";
 import SideBar from "./SideBar";
@@ -75,9 +76,11 @@ function AppContent() {
 
 function App() {
 	return (
-		<ToastProvider>
-			<AppContent />
-		</ToastProvider>
+		<GlobalErrorBoundary>
+			<ToastProvider>
+				<AppContent />
+			</ToastProvider>
+		</GlobalErrorBoundary>
 	);
 }
 
