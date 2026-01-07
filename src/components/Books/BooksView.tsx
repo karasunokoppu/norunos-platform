@@ -38,19 +38,20 @@ const BookItem = ({
 			{book.title}
 		</h3>
 		<p className="text-sm text-gray-600 truncate">{book.author}</p>
-		{book.status} • {book.total_pages}p
-	</p>
-		{/* Progress Bar */ }
+		<p className="text-xs text-gray-400 mt-1">
+			{book.status} • {book.total_pages}p
+		</p>
+		{/* Progress Bar */}
 		<div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-			<div 
-				className="bg-blue-600 h-1.5 rounded-full" 
-				style={{ width: `${Math.min(100, (book.current_page / book.total_pages) * 100)}%` }}
+			<div
+				className="bg-blue-600 h-1.5 rounded-full"
+				style={{ width: `${Math.min(100, (book.current_page / Math.max(book.total_pages, 1)) * 100)}%` }}
 			></div>
 		</div>
 		<p className="text-xs text-right text-gray-400 mt-1">
-			{Math.round((book.current_page / book.total_pages) * 100)}%
+			{Math.round((book.current_page / Math.max(book.total_pages, 1)) * 100)}%
 		</p>
-	</div >
+	</div>
 );
 
 import BookDetailModal from "./BookDetailModal";

@@ -145,20 +145,20 @@ const BookDetailModal = ({
 										min="0"
 										max={book.total_pages}
 										value={book.current_page}
-										onChange={async (e) => {
-											const newPage = parseInt(e.target.value) || 0;
-											await onEditBook(); // Re-using onEditBook which triggers refresh is a bit tricky here. 
-											// The onEditBook prop opens the dialog. We want to update JUST the page.
-											// Maybe I should add a specific onUpdateProgress prop or just call invoke here.
-											// Since onEditBook opens a dialog, let's call invoke here directly and then trigger a refresh?
-											// But BookDetailModal takes 'book' as prop. We need to update the parent state.
-											// The parent (BooksView) has handleSave which refreshes.
-											// But BookDetailModal doesn't have a way to ask parent to refresh without closing or opening dialog.
-											// Let's rely on the Edit Dialog for now as the 'onEditBook' opens it, and I already added Current Page there.
-											// Wait, the plan said "Add an input or slider to update current_page directly".
-											// So I should probably implement it here.
-											// I will need a way to notify parent to refresh.
+										onChange={() => {
+											// Placeholder for inline edit
 										}}
+										// The onEditBook prop opens the dialog. We want to update JUST the page.
+										// Maybe I should add a specific onUpdateProgress prop or just call invoke here.
+										// Since onEditBook opens a dialog, let's call invoke here directly and then trigger a refresh?
+										// But BookDetailModal takes 'book' as prop. We need to update the parent state.
+										// The parent (BooksView) has handleSave which refreshes.
+										// But BookDetailModal doesn't have a way to ask parent to refresh without closing or opening dialog.
+										// Let's rely on the Edit Dialog for now as the 'onEditBook' opens it, and I already added Current Page there.
+										// Wait, the plan said "Add an input or slider to update current_page directly".
+										// So I should probably implement it here.
+										// I will need a way to notify parent to refresh.
+
 										// Actually let's just show it for now and use the Edit button to update.
 										disabled
 										className="w-16 px-1 py-0.5 border rounded bg-gray-100"

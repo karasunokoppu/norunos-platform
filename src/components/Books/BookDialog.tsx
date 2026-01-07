@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../context/ToastContext";
 import type { Book } from "../../type/books";
 
@@ -25,6 +25,18 @@ const BookDialog = ({
 		initialBook?.cover_image_path || "",
 	);
 	const { showError, showSuccess } = useToast();
+
+	// Reset form when initialBook changes (e.g., switching between add and edit mode)
+	useEffect(() => {
+		if (isOpen) {
+			setTitle(initialBook?.title || "");
+			setAuthor(initialBook?.author || "");
+			setStatus(initialBook?.status || "To Read");
+			setTotalPages(initialBook?.total_pages || 0);
+			setCurrentPage(initialBook?.current_page || 0);
+			setCoverPath(initialBook?.cover_image_path || "");
+		}
+	}, [isOpen, initialBook]);
 
 	if (!isOpen) return null;
 
