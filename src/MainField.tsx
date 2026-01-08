@@ -26,10 +26,10 @@ const MainField: React.FC<MainFieldProps> = ({
 				<ToDoListView tasks={tasks} onRefresh={onRefresh} />
 			) : currentContent === "Dashboard" ? (
 				<DashboardView tasks={tasks} />
-			) : currentContent === "Calender" ? (
-				<CalenderView tasks={tasks} />
 			) : currentContent === "Gantt Chart" ? (
 				<GanttChartView tasks={tasks} onRefresh={onRefresh} />
+			) : currentContent === "Calender" ? (
+				<CalenderView tasks={tasks} />
 			) : currentContent === "Notes" ? (
 				<NotesView />
 			) : currentContent === "Books" ? (
