@@ -1,17 +1,21 @@
+import type React from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import wikiLinkPlugin from "remark-wiki-link";
 
 interface MarkdownRendererProps {
     content: string;
     className?: string;
+    onNavigate?: (href: string) => void;
 }
 
 const MarkdownRenderer = ({
     content,
     className = "",
+    onNavigate,
 }: MarkdownRendererProps) => {
     // Pre-process content to improve spacing
     const processedContent = content
@@ -21,7 +25,16 @@ const MarkdownRenderer = ({
     return (
         <div className={`prose prose-sm prose-invert max-w-none ${className}`}>
             <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkBreaks]}
+                remarkPlugins={[
+                    remarkGfm,
+                    remarkBreaks,
+                    [
+                        wikiLinkPlugin,
+                        {
+                            hrefTemplate: (permalink: string) => `internal://${permalink}`,
+                        },
+                    ],
+                ]}
                 components={{
                     code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || "");
@@ -116,14 +129,27 @@ const MarkdownRenderer = ({
                         );
                     },
                     a({ href, children }: any) {
+                        const isInternal = href && href.startsWith("internal://");
+
+                        const handleClick = (e: React.MouseEvent) => {
+                            if (isInternal && onNavigate) {
+                                e.preventDefault();
+                                onNavigate(href);
+                            }
+                        };
+
                         return (
                             <a
                                 href={href}
-                                className="text-accent-secondary hover:underline"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                onClick={handleClick}
+                                className={`text-accent-secondary hover:underline ${isInternal ? "cursor-alias font-semibold" : ""}`}
+                                target={isInternal ? undefined : "_blank"}
+                                rel={isInternal ? undefined : "noopener noreferrer"}
                             >
                                 {children}
+                                {isInternal && (
+                                    <span className="text-xs ml-1 opacity-50">↗</span>
+                                )}
                             </a>
                         );
                     },
