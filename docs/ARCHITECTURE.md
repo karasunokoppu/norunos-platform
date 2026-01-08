@@ -50,6 +50,8 @@
 - `src/components/`: Reactフロントエンドコンポーネント。
   - `Notes/`: ノートエディタおよびグラフの可視化。
   - `ToDoList/`: タスク管理UI。
+  - `shared/`: 共有コンポーネント (MarkdownRenderer等)。
+- `src/hooks/`: カスタムフック (useReadingMemos等)。
 
 ---
 

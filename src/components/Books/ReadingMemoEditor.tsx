@@ -1,6 +1,5 @@
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownRenderer from "../shared/MarkdownRenderer";
 
 interface ReadingMemoEditorProps {
 	initialContent?: string;
@@ -24,29 +23,29 @@ const ReadingMemoEditor = ({
 	};
 
 	return (
-		<div className="flex flex-col h-full border rounded-lg overflow-hidden bg-white">
-			<div className="flex justify-between items-center bg-gray-100 p-2 border-b">
+		<div className="flex flex-col h-full border border-border-primary rounded-lg overflow-hidden bg-bg-primary">
+			<div className="flex justify-between items-center bg-bg-secondary p-2 border-b border-border-primary">
 				<div className="flex items-center gap-4">
-					<span className="font-bold text-sm">メモ</span>
+					<span className="font-bold text-sm text-text-primary">メモ</span>
 					<div className="flex items-center gap-2">
-						<label className="text-xs text-gray-600">ページ:</label>
+						<label className="text-xs text-text-secondary">ページ:</label>
 						<input
 							type="number"
 							value={pageNumber}
 							onChange={(e) => setPageNumber(parseInt(e.target.value))}
-							className="w-20 px-2 py-1 text-sm border rounded"
+							className="w-20 px-2 py-1 text-sm border border-border-secondary rounded bg-bg-primary text-text-primary"
 						/>
 					</div>
 				</div>
 				<div className="flex gap-2">
 					<button
-						className={`px-3 py-1 text-sm rounded ${!isPreview ? "bg-blue-100 text-blue-700" : "text-gray-600"}`}
+						className={`px-3 py-1 text-sm rounded ${!isPreview ? "bg-accent-secondary/20 text-accent-secondary" : "text-text-secondary"}`}
 						onClick={() => setIsPreview(false)}
 					>
 						編集
 					</button>
 					<button
-						className={`px-3 py-1 text-sm rounded ${isPreview ? "bg-blue-100 text-blue-700" : "text-gray-600"}`}
+						className={`px-3 py-1 text-sm rounded ${isPreview ? "bg-accent-secondary/20 text-accent-secondary" : "text-text-secondary"}`}
 						onClick={() => setIsPreview(true)}
 					>
 						プレビュー
@@ -54,26 +53,26 @@ const ReadingMemoEditor = ({
 				</div>
 			</div>
 
-			<div className="flex-1 overflow-auto p-4 min-h-[300px]">
+			<div className="flex-1 overflow-auto p-4 min-h-[300px] bg-bg-secondary">
 				{!isPreview ? (
 					<textarea
-						className="w-full h-full p-2 border-none outline-none resize-none font-mono text-sm"
+						className="w-full h-full p-2 border-none outline-none resize-none font-mono text-sm bg-bg-secondary text-text-primary"
 						value={content}
 						onChange={(e) => setContent(e.target.value)}
 						placeholder="ここにメモを入力... (Markdown対応)"
 					/>
 				) : (
-					<div className="prose prose-sm w-full max-w-none">
-						<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+					<div className="prose prose-sm prose-invert w-full max-w-none">
+						<MarkdownRenderer content={content} />
 					</div>
 				)}
 			</div>
 
-			<div className="p-3 border-t bg-gray-50 flex justify-end gap-2">
+			<div className="p-3 border-t border-border-primary bg-bg-secondary flex justify-end gap-2">
 				<button
 					type="button"
 					onClick={onCancel}
-					className="px-4 py-2 text-gray-600 text-sm hover:text-gray-800"
+					className="px-4 py-2 text-text-secondary text-sm hover:text-text-primary"
 				>
 					キャンセル
 				</button>
@@ -81,7 +80,7 @@ const ReadingMemoEditor = ({
 				<button
 					type="button"
 					onClick={handleSave}
-					className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+					className="px-4 py-2 bg-accent-secondary text-white text-sm rounded hover:bg-opacity-90"
 				>
 					メモを保存
 				</button>
