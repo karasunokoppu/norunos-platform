@@ -1,39 +1,19 @@
 import { invoke } from "@tauri-apps/api/core";
-import { AlertTriangle, BookOpen, Clock, FileText } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import type { Task } from "../../type";
 import type { Book } from "../../type/books";
 import { getTasks } from "../../tauri/to_do_list_api";
 import { type FileNode, getNotesTree } from "../../tauri/notes_api";
+import { isOverdue, isThisWeek, isToday } from "../../utils/dateUtils";
+import ReadingProgressWidget from "./ReadingProgressWidget";
+import RecentNotesWidget from "./RecentNotesWidget";
+import UpcomingTasksWidget from "./UpcomingTasksWidget";
 
 interface DashboardViewProps {
 	tasks?: Task[];
 }
-
-// 日付ユーティリティ関数
-const isToday = (dateStr: string): boolean => {
-	const date = new Date(dateStr);
-	const today = new Date();
-	return date.toDateString() === today.toDateString();
-};
-
-const isThisWeek = (dateStr: string): boolean => {
-	const date = new Date(dateStr);
-	const today = new Date();
-	const startOfWeek = new Date(today);
-	startOfWeek.setDate(today.getDate() - today.getDay());
-	startOfWeek.setHours(0, 0, 0, 0);
-	const endOfWeek = new Date(startOfWeek);
-	endOfWeek.setDate(startOfWeek.getDate() + 7);
-	return date >= startOfWeek && date < endOfWeek;
-};
-
-const isOverdue = (dateStr: string): boolean => {
-	const date = new Date(dateStr);
-	const now = new Date();
-	return date < now;
-};
 
 // ノートファイルをフラットに収集
 const collectNotes = (nodes: FileNode[]): FileNode[] => {
@@ -61,17 +41,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ tasks: propTasks }) => {
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				// タスクが渡されていない場合は取得
 				if (!propTasks || propTasks.length === 0) {
 					const fetchedTasks = await getTasks();
 					setTasks(fetchedTasks);
 				}
 
-				// 本を取得
 				const fetchedBooks = await invoke<Book[]>("get_books");
 				setBooks(fetchedBooks);
 
-				// ノートを取得
 				const notesTree = await getNotesTree();
 				const allNotes = collectNotes(notesTree);
 				setRecentNotes(allNotes.slice(0, 5));
@@ -92,16 +69,19 @@ const DashboardView: React.FC<DashboardViewProps> = ({ tasks: propTasks }) => {
 		totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
 	// 今日/今週のタスク
-	const upcomingTasks = tasks.filter((t) => {
-		if (t.completed) return false;
-		const endDate = t.end_datetime || t.start_datetime;
-		if (!endDate) return false;
-		return isToday(endDate) || isThisWeek(endDate);
-	}).sort((a, b) => {
-		const dateA = a.end_datetime || a.start_datetime || "";
-		const dateB = b.end_datetime || b.start_datetime || "";
-		return new Date(dateA).getTime() - new Date(dateB).getTime();
-	}).slice(0, 5);
+	const upcomingTasks = tasks
+		.filter((t) => {
+			if (t.completed) return false;
+			const endDate = t.end_datetime || t.start_datetime;
+			if (!endDate) return false;
+			return isToday(endDate) || isThisWeek(endDate);
+		})
+		.sort((a, b) => {
+			const dateA = a.end_datetime || a.start_datetime || "";
+			const dateB = b.end_datetime || b.start_datetime || "";
+			return new Date(dateA).getTime() - new Date(dateB).getTime();
+		})
+		.slice(0, 5);
 
 	// 期限超過タスク
 	const overdueTasks = tasks.filter((t) => {
@@ -123,7 +103,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ tasks: propTasks }) => {
 
 	return (
 		<div className="h-full w-full p-8 bg-bg-secondary overflow-auto">
-			<h2 className="text-2xl font-bold text-text-primary mb-6">ダッシュボード</h2>
+			<h2 className="text-2xl font-bold text-text-primary mb-6">
+				ダッシュボード
+			</h2>
 
 			{/* 統計カード */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -181,115 +163,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ tasks: propTasks }) => {
 			)}
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				{/* 今日/今週の予定タスク */}
-				<div className="bg-bg-primary p-6 rounded-lg shadow-md border border-border-primary">
-					<div className="flex items-center gap-2 mb-4">
-						<Clock className="text-accent-secondary" size={20} />
-						<h3 className="text-lg font-bold text-text-primary">
-							今日/今週の予定
-						</h3>
-					</div>
-					{upcomingTasks.length === 0 ? (
-						<p className="text-text-tertiary text-sm">
-							今週の予定タスクはありません
-						</p>
-					) : (
-						<div className="space-y-2">
-							{upcomingTasks.map((task) => {
-								const dateStr = task.end_datetime || task.start_datetime || "";
-								const isTaskToday = dateStr && isToday(dateStr);
-								return (
-									<div
-										key={task.id}
-										className="flex justify-between items-center p-3 bg-bg-secondary rounded"
-									>
-										<span className="text-text-primary text-sm">
-											{task.description}
-										</span>
-										<span
-											className={`text-xs px-2 py-1 rounded ${isTaskToday
-													? "bg-accent-primary/20 text-accent-primary"
-													: "bg-bg-tertiary text-text-secondary"
-												}`}
-										>
-											{dateStr ? new Date(dateStr).toLocaleDateString() : ""}
-										</span>
-									</div>
-								);
-							})}
-						</div>
-					)}
-				</div>
-
-				{/* 読書進捗 */}
-				<div className="bg-bg-primary p-6 rounded-lg shadow-md border border-border-primary">
-					<div className="flex items-center gap-2 mb-4">
-						<BookOpen className="text-accent-secondary" size={20} />
-						<h3 className="text-lg font-bold text-text-primary">読書中の本</h3>
-					</div>
-					{readingBooks.length === 0 ? (
-						<p className="text-text-tertiary text-sm">
-							現在読んでいる本はありません
-						</p>
-					) : (
-						<div className="space-y-4">
-							{readingBooks.slice(0, 3).map((book) => {
-								const progressPercent =
-									book.total_pages > 0
-										? Math.round((book.current_page / book.total_pages) * 100)
-										: 0;
-								return (
-									<div key={book.id} className="p-3 bg-bg-secondary rounded">
-										<div className="flex justify-between items-center mb-2">
-											<span className="text-text-primary text-sm font-medium truncate max-w-[70%]">
-												{book.title}
-											</span>
-											<span className="text-xs text-accent-primary">
-												{progressPercent}%
-											</span>
-										</div>
-										<div className="w-full bg-bg-tertiary rounded-full h-2">
-											<div
-												className="bg-accent-primary h-2 rounded-full transition-all"
-												style={{ width: `${progressPercent}%` }}
-											/>
-										</div>
-										<div className="text-xs text-text-tertiary mt-1">
-											{book.current_page} / {book.total_pages} ページ
-										</div>
-									</div>
-								);
-							})}
-						</div>
-					)}
-				</div>
-
-				{/* 最近のノート */}
-				<div className="bg-bg-primary p-6 rounded-lg shadow-md border border-border-primary lg:col-span-2">
-					<div className="flex items-center gap-2 mb-4">
-						<FileText className="text-accent-secondary" size={20} />
-						<h3 className="text-lg font-bold text-text-primary">
-							最近のノート
-						</h3>
-					</div>
-					{recentNotes.length === 0 ? (
-						<p className="text-text-tertiary text-sm">ノートがありません</p>
-					) : (
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-							{recentNotes.map((note) => (
-								<div
-									key={note.path}
-									className="flex items-center gap-2 p-3 bg-bg-secondary rounded hover:bg-bg-tertiary transition-colors cursor-pointer"
-								>
-									<FileText className="text-text-tertiary" size={16} />
-									<span className="text-text-primary text-sm truncate">
-										{note.name.replace(".md", "")}
-									</span>
-								</div>
-							))}
-						</div>
-					)}
-				</div>
+				<UpcomingTasksWidget tasks={upcomingTasks} />
+				<ReadingProgressWidget books={readingBooks} />
+				<RecentNotesWidget notes={recentNotes} />
 			</div>
 		</div>
 	);
