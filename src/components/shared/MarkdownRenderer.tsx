@@ -6,6 +6,8 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import wikiLinkPlugin from "remark-wiki-link";
 
+import { openUrl } from "@tauri-apps/plugin-opener";
+
 interface MarkdownRendererProps {
     content: string;
     className?: string;
@@ -131,10 +133,17 @@ const MarkdownRenderer = ({
                     a({ href, children }: any) {
                         const isInternal = href && href.startsWith("internal://");
 
-                        const handleClick = (e: React.MouseEvent) => {
+                        const handleClick = async (e: React.MouseEvent) => {
                             if (isInternal && onNavigate) {
                                 e.preventDefault();
                                 onNavigate(href);
+                            } else if (href && !isInternal) {
+                                e.preventDefault();
+                                try {
+                                    await openUrl(href);
+                                } catch (error) {
+                                    console.error("Failed to open link:", error);
+                                }
                             }
                         };
 
@@ -142,13 +151,13 @@ const MarkdownRenderer = ({
                             <a
                                 href={href}
                                 onClick={handleClick}
-                                className={`text-accent-secondary hover:underline ${isInternal ? "cursor-alias font-semibold" : ""}`}
-                                target={isInternal ? undefined : "_blank"}
-                                rel={isInternal ? undefined : "noopener noreferrer"}
+                                className={`text-accent-secondary hover:underline cursor-pointer ${isInternal ? "cursor-alias font-semibold" : ""}`}
                             >
                                 {children}
-                                {isInternal && (
+                                {isInternal ? (
                                     <span className="text-xs ml-1 opacity-50">↗</span>
+                                ) : (
+                                    <span className="text-xs ml-1 opacity-50">🔗</span>
                                 )}
                             </a>
                         );
