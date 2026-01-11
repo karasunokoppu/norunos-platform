@@ -3,7 +3,6 @@ import {
 	Brain,
 	Calendar,
 	ChartGantt,
-	Command,
 	LayoutDashboard,
 	ListTodo,
 	Notebook,
@@ -38,7 +37,7 @@ const SideBar: React.FC<SideBarProps> = ({
 		(isSideBarOpened ? " w-60" : " w-[70px]");
 
 	const buttonCss =
-		"flex flex-row items-center cursor-pointer transition-colors duration-200 outline-none rounded-lg min-h-[44px] " +
+		"group flex flex-row items-center cursor-pointer transition-colors duration-200 outline-none rounded-lg min-h-[44px] " +
 		(isSideBarOpened ? "px-3 mx-2.5" : "px-0 mx-3 justify-center");
 
 	const getLinkClass = (active: boolean) => {
@@ -46,8 +45,17 @@ const SideBar: React.FC<SideBarProps> = ({
 			buttonCss +
 			" " +
 			(active
-				? "bg-accent-primary/10 text-accent-primary font-medium"
+				? "text-text-primary font-medium"
 				: "hover:bg-bg-hover text-text-secondary hover:text-text-primary")
+		);
+	};
+
+	const getIconClass = (active: boolean) => {
+		return (
+			"flex items-center justify-center p-2 rounded-lg transition-all duration-300 shrink-0 " +
+			(active
+				? "bg-accent-primary text-white shadow-md shadow-accent-primary/20 scale-105"
+				: "bg-accent-primary/5 text-text-tertiary group-hover:bg-accent-primary/10 group-hover:text-text-secondary")
 		);
 	};
 
@@ -61,9 +69,9 @@ const SideBar: React.FC<SideBarProps> = ({
 				title={isSideBarOpened ? "Collapse Sidebar" : "Expand Sidebar"}
 			>
 				<div
-					className={`flex items-center justify-center p-2 rounded-lg bg-accent-primary/10 text-accent-primary transition-all duration-300 group-hover:bg-accent-primary/20 shrink-0`}
+					className={`flex items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-105 shrink-0 overflow-hidden shadow-sm`}
 				>
-					<Command size={22} />
+					<img src="/app-icon.png" alt="App Logo" className="w-10 h-10 object-cover" />
 				</div>
 
 				<div
@@ -79,23 +87,28 @@ const SideBar: React.FC<SideBarProps> = ({
 			</button>
 
 			{/* Main Navigation */}
-			<div className="flex-1 flex flex-col gap-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
-				{mainItems.map((item) => (
-					<button
-						key={item.id}
-						type="button"
-						className={getLinkClass(currentContent === item.id)}
-						onClick={() => onSelectContent(item.id)}
-						title={!isSideBarOpened ? item.label : undefined}
-					>
-						<item.icon size={20} className="shrink-0" />
-						<span
-							className={`text-sm whitespace-nowrap transition-all duration-300 ${isSideBarOpened ? "ml-3 opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+			<div className="flex-1 flex flex-col gap-2 overflow-y-auto overflow-x-hidden scrollbar-thin py-2">
+				{mainItems.map((item) => {
+					const active = currentContent === item.id;
+					return (
+						<button
+							key={item.id}
+							type="button"
+							className={getLinkClass(active)}
+							onClick={() => onSelectContent(item.id)}
+							title={!isSideBarOpened ? item.label : undefined}
 						>
-							{item.label}
-						</span>
-					</button>
-				))}
+							<div className={getIconClass(active)}>
+								<item.icon size={20} />
+							</div>
+							<span
+								className={`text-sm whitespace-nowrap transition-all duration-300 ${isSideBarOpened ? "ml-3 opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+							>
+								{item.label}
+							</span>
+						</button>
+					);
+				})}
 			</div>
 
 			{/* Bottom Section (Settings) */}
@@ -106,7 +119,9 @@ const SideBar: React.FC<SideBarProps> = ({
 					onClick={() => onSelectContent("Settings")}
 					title={!isSideBarOpened ? "Settings" : undefined}
 				>
-					<Settings size={20} className="shrink-0" />
+					<div className={getIconClass(currentContent === "Settings")}>
+						<Settings size={20} />
+					</div>
 					<span
 						className={`ml-3 text-sm whitespace-nowrap transition-all duration-300 ${isSideBarOpened ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
 					>
