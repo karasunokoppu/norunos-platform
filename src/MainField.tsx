@@ -22,10 +22,10 @@ const MainField: React.FC<MainFieldProps> = ({
 }) => {
 	return (
 		<div className="h-full flex-1 overflow-hidden bg-bg-secondary">
-			{currentContent === "To Do List" ? (
-				<ToDoListView tasks={tasks} onRefresh={onRefresh} />
-			) : currentContent === "Dashboard" ? (
+			{currentContent === "Dashboard" ? (
 				<DashboardView tasks={tasks} />
+			) : currentContent === "To Do List" ? (
+				<ToDoListView tasks={tasks} onRefresh={onRefresh} />
 			) : currentContent === "Gantt Chart" ? (
 				<GanttChartView tasks={tasks} onRefresh={onRefresh} />
 			) : currentContent === "Calender" ? (

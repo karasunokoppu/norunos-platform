@@ -11,7 +11,7 @@ import { getTasks } from "./tauri/to_do_list_api";
 import type { Task } from "./type";
 
 function AppContent() {
-	const [currentContent, setContent] = useState<string>("To Do List");
+	const [currentContent, setContent] = useState<string>("Dashboard");
 	const [tasks, setTasks] = useState<Task[]>([]);
 	const [isMaximized, setIsMaximized] = useState(false);
 	const appWindow = getCurrentWindow();

@@ -23,9 +23,9 @@ const SideBar: React.FC<SideBarProps> = ({
 	const [isSideBarOpened, setIsSideBarOpened] = React.useState(true);
 
 	const mainItems = [
+		{ id: "Dashboard", icon: LayoutDashboard, label: "Dashboard" },
 		{ id: "To Do List", icon: ListTodo, label: "To Do List" },
 		{ id: "Gantt Chart", icon: ChartGantt, label: "Gantt Chart" },
-		{ id: "Dashboard", icon: LayoutDashboard, label: "Dashboard" },
 		{ id: "Calender", icon: Calendar, label: "Calender" },
 		{ id: "Notes", icon: Notebook, label: "Notes" },
 		{ id: "Books", icon: Book, label: "Books" },
