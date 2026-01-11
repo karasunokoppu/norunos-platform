@@ -1,10 +1,17 @@
-import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Book } from "../../type/books";
 import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useToast } from "../../context/ToastContext";
+import type { Book } from "../../type/books";
 
 // Placeholder components
-const BookItem = ({ book, onClick }: { book: Book; onClick: (book: Book) => void }) => (
+const BookItem = ({
+	book,
+	onClick,
+}: {
+	book: Book;
+	onClick: (book: Book) => void;
+}) => (
 	<div
 		className="border p-4 rounded shadow hover:shadow-lg cursor-pointer transition-shadow bg-bg-primary text-text-primary"
 		onClick={() => onClick(book)}
@@ -12,9 +19,12 @@ const BookItem = ({ book, onClick }: { book: Book; onClick: (book: Book) => void
 		{book.cover_image_path && (
 			<div className="h-48 w-full mb-2 bg-gray-100 flex items-center justify-center overflow-hidden">
 				{/* TODO: Handle local asset loading securely if needed, or assume web URL/convertFileSrc */}
-				<img src={`https://asset.localhost/${book.cover_image_path}`} alt={book.title} className="w-full h-full object-cover"
+				<img
+					src={`https://asset.localhost/${book.cover_image_path}`}
+					alt={book.title}
+					className="w-full h-full object-cover"
 					onError={(e) => {
-						(e.target as HTMLImageElement).style.display = 'none';
+						(e.target as HTMLImageElement).style.display = "none";
 					}}
 				/>
 			</div>
@@ -24,21 +34,35 @@ const BookItem = ({ book, onClick }: { book: Book; onClick: (book: Book) => void
 				No Cover
 			</div>
 		)}
-		<h3 className="font-bold truncate" title={book.title}>{book.title}</h3>
+		<h3 className="font-bold truncate" title={book.title}>
+			{book.title}
+		</h3>
 		<p className="text-sm text-gray-600 truncate">{book.author}</p>
-		<p className="text-xs text-gray-400 mt-1">{book.status} • {book.total_pages}p</p>
+		<p className="text-xs text-gray-400 mt-1">
+			{book.status} • {book.total_pages}p
+		</p>
+		{/* Progress Bar */}
+		<div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+			<div
+				className="bg-blue-600 h-1.5 rounded-full"
+				style={{ width: `${Math.min(100, (book.current_page / Math.max(book.total_pages, 1)) * 100)}%` }}
+			></div>
+		</div>
+		<p className="text-xs text-right text-gray-400 mt-1">
+			{Math.round((book.current_page / Math.max(book.total_pages, 1)) * 100)}%
+		</p>
 	</div>
 );
 
-import BookDialog from "./BookDialog";
-
 import BookDetailModal from "./BookDetailModal";
+import BookDialog from "./BookDialog";
 
 const BooksView = () => {
 	const [books, setBooks] = useState<Book[]>([]);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [isDetailOpen, setIsDetailOpen] = useState(false);
 	const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+	const { showError } = useToast();
 
 	const fetchBooks = async () => {
 		try {
@@ -46,6 +70,7 @@ const BooksView = () => {
 			setBooks(data);
 		} catch (error) {
 			console.error("Failed to fetch books:", error);
+			showError("本の一覧の取得に失敗しました");
 		}
 	};
 
@@ -72,14 +97,16 @@ const BooksView = () => {
 		// Let's close detail and open edit dialog.
 		setIsDetailOpen(false);
 		setIsDialogOpen(true);
-		// We will need to re-open detail after save if we want continuous flow, 
+		// We will need to re-open detail after save if we want continuous flow,
 		// but for now let's just go back to list.
 	};
 
 	return (
 		<div className="p-6">
 			<div className="flex justify-between items-center mb-6">
-				<h2 className="text-2xl text-text-primary font-bold">Books (Reading Memos)</h2>
+				<h2 className="text-2xl text-text-primary font-bold">
+					Books (Reading Memos)
+				</h2>
 				<button
 					className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
 					onClick={handleAddClick}

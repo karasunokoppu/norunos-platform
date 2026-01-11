@@ -26,16 +26,18 @@ pub async fn create_book(
 ) -> Result<Book, String> {
     let mut book = Book::new(title, author, total_pages);
     book.cover_image_path = cover_image_path;
+    // current_page is already initialized to 0 in Book::new
 
     sqlx::query(
-        "INSERT INTO books (id, title, author, status, total_pages, cover_image_path, created_at, updated_at, deleted_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO books (id, title, author, status, total_pages, current_page, cover_image_path, created_at, updated_at, deleted_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(&book.id)
     .bind(&book.title)
     .bind(&book.author)
     .bind(&book.status)
     .bind(book.total_pages)
+    .bind(book.current_page)
     .bind(&book.cover_image_path)
     .bind(&book.created_at)
     .bind(&book.updated_at)
@@ -55,20 +57,19 @@ pub async fn update_book(
     author: String,
     status: String,
     total_pages: i32,
+    current_page: i32,
     cover_image_path: Option<String>,
 ) -> Result<Book, String> {
     let updated_at = Local::now().to_rfc3339();
 
-    // We fetch the book first to construct the return object easily or strict updated fields.
-    // For simplicity, we just update and return the constructed object.
-
     sqlx::query(
-        "UPDATE books SET title = ?, author = ?, status = ?, total_pages = ?, cover_image_path = ?, updated_at = ? WHERE id = ?",
+        "UPDATE books SET title = ?, author = ?, status = ?, total_pages = ?, current_page = ?, cover_image_path = ?, updated_at = ? WHERE id = ?",
     )
     .bind(&title)
     .bind(&author)
     .bind(&status)
     .bind(total_pages)
+    .bind(current_page)
     .bind(&cover_image_path)
     .bind(&updated_at)
     .bind(&id)

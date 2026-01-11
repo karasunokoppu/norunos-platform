@@ -3,11 +3,11 @@ import BooksView from "./components/Books/BooksView";
 import CalenderView from "./components/Calender/CalenderView";
 import DashboardView from "./components/Dashboard/DashboardView";
 import GanttChartView from "./components/GanttChart/GanttChartView";
+import MindMapView from "./components/MindMap/MindMap";
 import NotesView from "./components/Notes/NotesView";
 import SettingsView from "./components/Settings/Settings";
 import ToDoListView from "./components/ToDoList/ToDoList";
-import MindMapView from "./components/MindMap/MindMap";
-import { Task } from "./type";
+import type { Task } from "./type";
 
 interface MainFieldProps {
 	currentContent: string;
@@ -15,17 +15,21 @@ interface MainFieldProps {
 	onRefresh: () => void;
 }
 
-const MainField: React.FC<MainFieldProps> = ({ currentContent, tasks, onRefresh }) => {
+const MainField: React.FC<MainFieldProps> = ({
+	currentContent,
+	tasks,
+	onRefresh,
+}) => {
 	return (
 		<div className="h-full flex-1 overflow-hidden bg-bg-secondary">
-			{currentContent === "To Do List" ? (
-				<ToDoListView tasks={tasks} onRefresh={onRefresh} />
-			) : currentContent === "Dashboard" ? (
+			{currentContent === "Dashboard" ? (
 				<DashboardView tasks={tasks} />
-			) : currentContent === "Calender" ? (
-				<CalenderView tasks={tasks} />
+			) : currentContent === "To Do List" ? (
+				<ToDoListView tasks={tasks} onRefresh={onRefresh} />
 			) : currentContent === "Gantt Chart" ? (
 				<GanttChartView tasks={tasks} onRefresh={onRefresh} />
+			) : currentContent === "Calender" ? (
+				<CalenderView tasks={tasks} />
 			) : currentContent === "Notes" ? (
 				<NotesView />
 			) : currentContent === "Books" ? (

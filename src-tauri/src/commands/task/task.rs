@@ -63,3 +63,56 @@ impl Task {
         self.deleted_at = Some(Local::now());
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_task_new() {
+        let task = Task::new();
+        assert!(!task.completed);
+        assert_eq!(task.description, "No description.");
+        assert!(task.details.is_none());
+        assert!(task.subtasks.is_empty());
+        assert!(task.start_datetime.is_none());
+        assert!(task.end_datetime.is_none());
+        assert_eq!(task.progress, 0);
+        assert!(task.updated_at.is_none());
+        assert!(task.deleted_at.is_none());
+        assert!(task.dependencies.is_empty());
+    }
+
+    #[test]
+    fn test_task_set_deleted() {
+        let mut task = Task::new();
+        assert!(task.deleted_at.is_none());
+
+        task.set_deleted();
+
+        assert!(task.deleted_at.is_some());
+    }
+
+    #[test]
+    fn test_task_update_updated_at() {
+        let mut task = Task::new();
+        assert!(task.updated_at.is_none());
+
+        task.update_updated_at();
+
+        assert!(task.updated_at.is_some());
+    }
+
+    #[test]
+    fn test_task_set_created_at() {
+        let mut task = Task::new();
+        let original_created_at = task.created_at;
+
+        // Sleep briefly to ensure time difference
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        task.set_created_at();
+
+        // created_at should be updated to a new time
+        assert!(task.created_at >= original_created_at);
+    }
+}

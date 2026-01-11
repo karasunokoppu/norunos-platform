@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { useToast } from "../../context/ToastContext";
+import { createTask } from "../../tauri/to_do_list_api";
+import type { CreateTaskPayload } from "../../type";
 import NorunoDatePicker from "../../ui/NorunoDatePicker";
 import NorunoDropdown from "../../ui/NorunoDropdown";
-import { createTask } from "../../tauri/to_do_list_api";
-import { CreateTaskPayload } from "../../type";
 
 interface TaskInputProps {
 	onRefresh: () => void;
-	taskGroups: { id: string, name: string }[];
+	taskGroups: { id: string; name: string }[];
 }
 
 const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
@@ -22,6 +23,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 	//Group
 	// const [taskGroups, setTaskGroups] = useState<{ id: string, name: string }[]>([]); // Removed internal state
 	const [selectedGroupId, setSelectedGroupId] = useState("");
+	const { showError, showSuccess } = useToast();
 
 	useEffect(() => {
 		if (taskGroups.length > 0 && !selectedGroupId) {
@@ -48,8 +50,10 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 			setStartDate("");
 			setEndDate("");
 			setIsInputOpen(false);
+			showSuccess("タスクを作成しました");
 		} catch (e) {
 			console.error("Failed to create task", e);
+			showError("タスクの作成に失敗しました");
 		}
 	};
 
@@ -70,8 +74,13 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 						onChange={(e) => setDescription(e.target.value)}
 						onFocus={() => setIsInputOpen(true)}
 						className={`${inputCss} flex-1`}
+						aria-label="タスクの説明"
 					/>
-					<button type="button" className={buttonCss} onClick={handleCreateTask}>
+					<button
+						type="button"
+						className={buttonCss}
+						onClick={handleCreateTask}
+					>
 						タスク追加
 					</button>
 				</div>
@@ -125,14 +134,16 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 									グループ:
 								</label>
 								<NorunoDropdown
-									value={taskGroups.find(g => g.id === selectedGroupId)?.name || ""}
+									value={
+										taskGroups.find((g) => g.id === selectedGroupId)?.name || ""
+									}
 									onChange={(name) => {
-										const group = taskGroups.find(g => g.name === name);
+										const group = taskGroups.find((g) => g.name === name);
 										if (group) setSelectedGroupId(group.id);
 									}}
-									options={taskGroups.map(g => ({
+									options={taskGroups.map((g) => ({
 										value: g.name,
-										label: g.name
+										label: g.name,
 									}))}
 								/>
 							</div>
@@ -144,19 +155,22 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 							value={details}
 							onChange={(e) => setDetails(e.target.value)}
 							className={`${inputCss} w-full`}
+							aria-label="タスクの詳細"
 						/>
 					</div>
 					<div className="flex justify-center">
 						<button
 							type="button"
 							onClick={() => setIsInputOpen(false)}
-							className="w-full flex justify-center text-text-secondary hover:text-text-primary rounded-md hover:bg-bg-hover transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-secondary"
+							className="w-full flex justify-center py-1 mt-2 hover:bg-bg-tertiary rounded text-text-tertiary"
+							aria-label="入力を閉じる"
 						>
 							<svg
-								className="w-5 h-5"
+								className="w-4 h-4"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
+								aria-hidden="true"
 							>
 								<path
 									strokeLinecap="round"
