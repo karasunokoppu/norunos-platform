@@ -10,7 +10,8 @@ export interface ReadingActivity {
 	book_title: string;
 	start_page: number;
 	end_page: number;
-	memo_id: string;
+	pages_read: number;
+	session_id: string;
 }
 
 export type CalendarEvent =

@@ -33,3 +33,14 @@ export interface CreateMemoDto {
 	page_number: number;
 	content: string;
 }
+
+export interface ReadingSession {
+	id: string;
+	book_id: string;
+	session_date: string;
+	start_page: number;
+	end_page: number;
+	pages_read: number;
+	note: string | null;
+	created_at: string;
+}

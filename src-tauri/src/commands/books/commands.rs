@@ -1,4 +1,4 @@
-use crate::commands::books::db::{Book, ReadingMemo};
+use crate::commands::books::db::{Book, ReadingMemo, ReadingSession};
 use crate::commands::books::fs;
 use crate::AppState;
 use chrono::Local;
@@ -235,7 +235,8 @@ pub struct ReadingActivity {
     pub book_title: String,
     pub start_page: i32,
     pub end_page: i32,
-    pub memo_id: String,
+    pub pages_read: i32,
+    pub session_id: String,
 }
 
 #[tauri::command]
@@ -244,21 +245,19 @@ pub async fn get_reading_activities(
     start_date: String,
     end_date: String,
 ) -> Result<Vec<ReadingActivity>, String> {
+    // reading_sessionsテーブルから読書活動を取得
     let sql = "
-        WITH Activity AS (
-            SELECT 
-                strftime('%Y-%m-%d', rm.created_at) as date,
-                b.title as book_title,
-                LAG(rm.page_number, 1, 0) OVER (PARTITION BY rm.book_id ORDER BY rm.created_at) as start_page,
-                rm.page_number as end_page,
-                rm.id as memo_id
-            FROM reading_memos rm
-            JOIN books b ON rm.book_id = b.id
-            WHERE rm.deleted_at IS NULL
-        )
-        SELECT * FROM Activity
-        WHERE date >= ? AND date <= ?
-        ORDER BY date ASC
+        SELECT 
+            rs.session_date as date,
+            b.title as book_title,
+            rs.start_page,
+            rs.end_page,
+            rs.pages_read,
+            rs.id as session_id
+        FROM reading_sessions rs
+        JOIN books b ON rs.book_id = b.id
+        WHERE rs.session_date >= ? AND rs.session_date <= ?
+        ORDER BY rs.session_date ASC, rs.created_at ASC
     ";
 
     sqlx::query_as::<_, ReadingActivity>(sql)
@@ -267,4 +266,85 @@ pub async fn get_reading_activities(
         .fetch_all(&state.pool)
         .await
         .map_err(|e| e.to_string())
+}
+
+// Reading Sessions Commands（読書セッション進捗履歴）
+
+/// 特定の本の読書セッション一覧を取得
+#[tauri::command]
+pub async fn get_reading_sessions(
+    state: State<'_, AppState>,
+    book_id: String,
+) -> Result<Vec<ReadingSession>, String> {
+    sqlx::query_as::<_, ReadingSession>(
+        "SELECT * FROM reading_sessions WHERE book_id = ? ORDER BY session_date DESC, created_at DESC",
+    )
+    .bind(book_id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(|e| e.to_string())
+}
+
+/// 新規読書セッションを作成し、本のcurrent_pageを自動更新
+#[tauri::command]
+pub async fn create_reading_session(
+    state: State<'_, AppState>,
+    book_id: String,
+    session_date: String,
+    start_page: i32,
+    end_page: i32,
+    note: Option<String>,
+) -> Result<ReadingSession, String> {
+    let id = uuid::Uuid::new_v4().to_string();
+    let created_at = Local::now().to_rfc3339();
+    let pages_read = end_page - start_page;
+
+    // セッションを挿入
+    sqlx::query(
+        "INSERT INTO reading_sessions (id, book_id, session_date, start_page, end_page, pages_read, note, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(&id)
+    .bind(&book_id)
+    .bind(&session_date)
+    .bind(start_page)
+    .bind(end_page)
+    .bind(pages_read)
+    .bind(&note)
+    .bind(&created_at)
+    .execute(&state.pool)
+    .await
+    .map_err(|e| e.to_string())?;
+
+    // 本のcurrent_pageを更新
+    let updated_at = Local::now().to_rfc3339();
+    sqlx::query("UPDATE books SET current_page = ?, updated_at = ? WHERE id = ?")
+        .bind(end_page)
+        .bind(&updated_at)
+        .bind(&book_id)
+        .execute(&state.pool)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(ReadingSession {
+        id,
+        book_id,
+        session_date,
+        start_page,
+        end_page,
+        pages_read,
+        note,
+        created_at,
+    })
+}
+
+/// 読書セッションを削除
+#[tauri::command]
+pub async fn delete_reading_session(state: State<'_, AppState>, id: String) -> Result<(), String> {
+    sqlx::query("DELETE FROM reading_sessions WHERE id = ?")
+        .bind(id)
+        .execute(&state.pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }

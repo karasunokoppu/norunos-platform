@@ -211,11 +211,11 @@ const CalenderView: React.FC<CalenderViewProps> = ({ tasks = [] }) => {
 									.filter((ra) => ra.date === cell.dateStr)
 									.map((ra) => (
 										<div
-											key={ra.memo_id}
+											key={ra.session_id}
 											className="bg-green-100 text-green-800 px-1 rounded truncate shadow-sm text-[10px]"
-											title={`📖 ${ra.book_title} p.${ra.start_page}-${ra.end_page}`}
+											title={`📖 ${ra.book_title} p.${ra.start_page}→${ra.end_page} (+${ra.pages_read}p)`}
 										>
-											📖 {ra.book_title} p.{ra.start_page}-{ra.end_page}
+											📖 {ra.book_title} +{ra.pages_read}p
 										</div>
 									))}
 								{dayTasks.map((t) => (

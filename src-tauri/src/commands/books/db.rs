@@ -28,6 +28,19 @@ pub struct ReadingMemo {
     pub deleted_at: Option<String>,
 }
 
+/// 読書セッション（進捗履歴）
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct ReadingSession {
+    pub id: String,
+    pub book_id: String,
+    pub session_date: String, // 読書日 (YYYY-MM-DD)
+    pub start_page: i32,      // 開始ページ
+    pub end_page: i32,        // 終了ページ
+    pub pages_read: i32,      // 読んだページ数
+    pub note: Option<String>, // メモ（任意）
+    pub created_at: String,
+}
+
 impl Book {
     pub fn new(title: String, author: String, total_pages: i32) -> Self {
         Self {
@@ -78,6 +91,23 @@ pub async fn init_books_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
             created_at TEXT NOT NULL,
             updated_at TEXT,
             deleted_at TEXT,
+            FOREIGN KEY(book_id) REFERENCES books(id)
+        )",
+    )
+    .execute(pool)
+    .await?;
+
+    // reading_sessions テーブルの作成（読書セッション進捗履歴用）
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS reading_sessions (
+            id TEXT PRIMARY KEY,
+            book_id TEXT NOT NULL,
+            session_date TEXT NOT NULL,
+            start_page INTEGER NOT NULL,
+            end_page INTEGER NOT NULL,
+            pages_read INTEGER NOT NULL,
+            note TEXT,
+            created_at TEXT NOT NULL,
             FOREIGN KEY(book_id) REFERENCES books(id)
         )",
     )
