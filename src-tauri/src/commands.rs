@@ -1,3 +1,4 @@
+pub mod backup;
 pub mod books;
 pub mod calendar;
 pub mod mindmap;

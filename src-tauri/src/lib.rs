@@ -1,13 +1,15 @@
 mod commands;
 
+use crate::commands::backup::core::*;
+
 use crate::commands::task::sql::task_commands::*;
 use crate::commands::task::sql::task_group_commands::*;
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::SqlitePool;
 use tauri::Manager;
 
-struct AppState {
-    pool: SqlitePool,
+pub struct AppState {
+    pub pool: SqlitePool,
 }
 
 async fn setup_pool(
@@ -46,6 +48,8 @@ pub async fn init_db(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .setup(move |app| {
@@ -104,7 +108,11 @@ pub fn run() {
             commands::mindmap::commands::create_mind_map,
             commands::mindmap::commands::update_mind_map,
             commands::mindmap::commands::delete_mind_map,
+            commands::mindmap::commands::delete_mind_map,
             commands::notification::send_notification,
+            commands::notification::send_notification,
+            export_backup,
+            import_backup,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
