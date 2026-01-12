@@ -23,7 +23,7 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
 	groups,
 	onRefreshGroups,
 }) => {
-	// const [groups, setGroups] = useState<TaskGroup[]>([]); // Removed internal state
+
 	const [isCreating, setIsCreating] = useState(false);
 	const [newGroupName, setNewGroupName] = useState("");
 	const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
@@ -34,7 +34,7 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
 		group: TaskGroup;
 	} | null>(null);
 
-	// const fetchGroups = async () => { ... } // Removed
+
 	// useEffect(() => { fetchGroups(); }, []); // Removed
 
 	const handleCreate = async () => {
@@ -108,8 +108,8 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
 
 			<div
 				className={`p-2 rounded cursor-pointer mb-2 ${selectedGroupId === null
-						? "bg-accent-secondary text-text-on-accent"
-						: "text-text-primary hover:bg-bg-secondary"
+					? "bg-accent-secondary text-text-on-accent"
+					: "text-text-primary hover:bg-bg-secondary"
 					}`}
 				onClick={() => onSelectGroup(null)}
 			>
@@ -121,8 +121,8 @@ const TaskGroupSidebar: React.FC<TaskGroupSidebarProps> = ({
 					<div
 						key={group.id}
 						className={`p-2 rounded cursor-pointer flex justify-between items-center group ${selectedGroupId === group.id
-								? "bg-accent-secondary text-text-on-accent"
-								: "text-text-primary hover:bg-bg-secondary"
+							? "bg-accent-secondary text-text-on-accent"
+							: "text-text-primary hover:bg-bg-secondary"
 							}`}
 						onClick={() => onSelectGroup(group.id)}
 						onContextMenu={(e) => handleContextMenu(e, group)}

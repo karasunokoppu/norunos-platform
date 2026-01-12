@@ -79,35 +79,42 @@ impl Subtask {
 
         let mut subtasks = Vec::new();
         for row in rows {
-            let id: String = row.try_get("id")?;
-            let id = Uuid::parse_str(&id).unwrap_or(Uuid::new_v4());
-            let order: i32 = row.try_get("order_num")?;
-            let description: String = row.try_get("description")?;
-            let completed: bool = row.try_get("completed")?;
-            let created_at_str: String = row.try_get("created_at")?;
-            let created_at = DateTime::parse_from_rfc3339(&created_at_str)
-                .unwrap_or_else(|_| Local::now().into())
-                .with_timezone(&Local);
-            let updated_at: Option<String> = row.try_get("updated_at")?;
-            let updated_at = updated_at
-                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
-                .map(|dt| dt.with_timezone(&Local));
-            let deleted_at: Option<String> = row.try_get("deleted_at")?;
-            let deleted_at = deleted_at
-                .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
-                .map(|dt| dt.with_timezone(&Local));
-
-            subtasks.push(Subtask {
-                id,
-                order,
-                description,
-                completed,
-                created_at,
-                updated_at,
-                deleted_at,
-            });
+            subtasks.push(Self::from_row(&row)?);
         }
         Ok(subtasks)
+    }
+
+    fn from_row(row: &sqlx::sqlite::SqliteRow) -> Result<Self, sqlx::Error> {
+        let id: String = row.try_get("id")?;
+        let id = Uuid::parse_str(&id).unwrap_or(Uuid::new_v4());
+        let order: i32 = row.try_get("order_num")?;
+        let description: String = row.try_get("description")?;
+        let completed: bool = row.try_get("completed")?;
+
+        let created_at_str: String = row.try_get("created_at")?;
+        let created_at = DateTime::parse_from_rfc3339(&created_at_str)
+            .unwrap_or_else(|_| Local::now().into())
+            .with_timezone(&Local);
+
+        let updated_at: Option<String> = row.try_get("updated_at")?;
+        let updated_at = updated_at
+            .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
+            .map(|dt| dt.with_timezone(&Local));
+
+        let deleted_at: Option<String> = row.try_get("deleted_at")?;
+        let deleted_at = deleted_at
+            .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())
+            .map(|dt| dt.with_timezone(&Local));
+
+        Ok(Subtask {
+            id,
+            order,
+            description,
+            completed,
+            created_at,
+            updated_at,
+            deleted_at,
+        })
     }
 
     pub async fn init_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {

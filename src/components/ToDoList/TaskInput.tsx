@@ -21,7 +21,7 @@ const TaskInput: React.FC<TaskInputProps> = ({ onRefresh, taskGroups }) => {
 	const [isEDPOpen, setIsEDPOpen] = React.useState(false);
 	const [endDate, setEndDate] = React.useState("");
 	//Group
-	// const [taskGroups, setTaskGroups] = useState<{ id: string, name: string }[]>([]); // Removed internal state
+
 	const [selectedGroupId, setSelectedGroupId] = useState("");
 	const { showError, showSuccess } = useToast();
 

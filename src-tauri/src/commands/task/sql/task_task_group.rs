@@ -1,5 +1,4 @@
-use sqlx::{Row, SqlitePool};
-use uuid::Uuid;
+use sqlx::SqlitePool;
 
 pub async fn init_rela_task_task_group_table(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
@@ -29,27 +28,6 @@ pub async fn save_rela_task_task_group(
     .execute(pool)
     .await?;
     Ok(())
-}
-
-pub async fn get_task_id_from_task_group_id(
-    pool: &SqlitePool,
-    task_group_id: &String,
-) -> Result<Vec<Uuid>, sqlx::Error> {
-    let tasks = sqlx::query(
-        "
-        SELECT task_id FROM rela_task_task_group WHERE task_group_id = ?
-    ",
-    )
-    .bind(task_group_id)
-    .fetch_all(pool)
-    .await?;
-    let mut task_ids = Vec::new();
-
-    for task_id in tasks {
-        let task: String = task_id.try_get("task_id")?;
-        task_ids.push(task.as_str().parse().unwrap());
-    }
-    Ok(task_ids)
 }
 
 pub async fn delete_rela_task_task_group_by_task_id(

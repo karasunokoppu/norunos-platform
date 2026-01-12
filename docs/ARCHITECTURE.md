@@ -30,7 +30,11 @@
 - **`task_groups`**: グループのメタデータ（名前、作成日時）を保存します。
 - **`rela_task_task_group`**: `task_id` と `task_group_id` をリンクする多対多（概念的には、現在は1対多として使用）の結合テーブルです。
 
-### バックエンド (`src-tauri/src/commands/task/sql/task_group_commands.rs`)
+### バックエンド (`src-tauri/src/commands/task/sql/task_group.rs`)
+
+- **`load_all`**:
+    - **N+1問題の解消**: すべてのグループとタスク・グループ間のリレーションを一括で取得し、メモリ上でマッピングすることでパフォーマンスを最適化しています。
+    - **Unassignedグループの生成**: どのグループにも属さないタスクを自動的に検出し、IDが `unassigned` の仮想グループとしてリストの先頭に追加して返します。フロントエンドはこの結果をそのまま表示します。
 
 - **`move_task_to_group(task_id, group_id)`**:
     1. 結合テーブル内の `task_id` に対する既存のエントリを削除します（古いグループから削除）。
@@ -38,8 +42,11 @@
 
 ### フロントエンド (`src/components/ToDoList`)
 
-- **`TaskList.tsx`** & **`TaskCard.tsx`**: コンテキストに応じた操作を可能にするため、`TaskGroup` の完全なリストをpropsとして受け取ります。
-- **`EditTaskDialog.tsx`**: タスクのグループを変更するためのUIを提供します。選択されたグループを初期グループと比較し、保存時に変更されていれば `moveTaskToGroup` を呼び出します。
+- **`ToDoList.tsx`**: 
+    - ロジックをカスタムフック (`useTaskGroups`, `useKanbanDrag`) に分離し、ビューコンポーネントとしての責務に集中しています。
+    - バックエンドから返される「Unassigned」グループを含むリストをそのままレンダリングします。
+- **`hooks/useTaskGroups.ts`**: グループの取得・作成ロジックを管理します。
+- **`hooks/useKanbanDrag.ts`**: `dnd-kit` を使用したドラッグ&ドロップの制御ロジックをカプセル化しています。
 
 ## 3. ディレクトリ構成 (主要ファイル)
 
@@ -49,7 +56,7 @@
     - `sql/`: SQLxを使用したデータベース対話レイヤー。
 - `src/components/`: Reactフロントエンドコンポーネント。
   - `Notes/`: ノートエディタおよびグラフの可視化。
-  - `ToDoList/`: タスク管理UI。
+  - `ToDoList/`: タスク管理UI (hooks/ サブディレクトリにロジックを分離)。
   - `shared/`: 共有コンポーネント (MarkdownRenderer等)。
 - `src/hooks/`: カスタムフック (useReadingMemos等)。
 

@@ -15,7 +15,6 @@ pub struct CreateTaskDto {
 }
 use crate::AppState;
 
-//TODO 一通り変更
 #[tauri::command]
 pub async fn get_tasks(state: tauri::State<'_, AppState>) -> Result<Vec<Task>, String> {
     task::load_all(&state.pool).await.map_err(|e| e.to_string())
