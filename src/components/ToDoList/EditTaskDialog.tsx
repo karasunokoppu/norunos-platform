@@ -87,7 +87,10 @@ const EditTaskDialog: React.FC<EditTaskDialogProps> = ({
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+		<div
+			className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+			onKeyDown={(e) => e.stopPropagation()}
+		>
 			<div className="bg-bg-primary p-6 rounded-lg shadow-xl w-96 border border-border-primary text-text-primary">
 				<h3 className="text-lg font-bold mb-4">タスク詳細</h3>
 
