@@ -144,7 +144,20 @@ pub async fn delete_item(path: String) -> Result<(), String> {
 pub async fn rename_item(path: String, new_name: String) -> Result<String, String> {
     let old_path = PathBuf::from(&path);
     let parent = old_path.parent().ok_or("Invalid path")?;
-    let new_path = parent.join(new_name);
+
+    let mut final_name = new_name;
+    // If old path was a markdown file and new name doesn't have an extension, add .md
+    if let Some(ext) = old_path.extension() {
+        if ext == "md" && !final_name.ends_with(".md") {
+            final_name.push_str(".md");
+        }
+    }
+
+    let new_path = parent.join(final_name);
+
+    if new_path.exists() {
+        return Err("Target path already exists".to_string());
+    }
 
     fs::rename(&old_path, &new_path).map_err(|e| e.to_string())?;
     Ok(new_path.to_string_lossy().to_string())

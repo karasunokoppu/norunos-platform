@@ -147,8 +147,11 @@ const MarkdownRenderer = ({
 
                         return (
                             <a
-                                href={href}
-                                onClick={handleClick}
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleClick(e);
+                                }}
                                 className={`text-accent-secondary hover:underline cursor-pointer ${isInternal ? "cursor-alias font-semibold" : ""}`}
                             >
                                 {children}

@@ -90,22 +90,113 @@ const NotesView: React.FC = () => {
 		}
 	};
 
-	const findPathByName = (nodes: FileNode[], name: string): string | null => {
+	// Recursively flatten the tree to search effectively
+	const flattenFiles = (nodes: FileNode[]): FileNode[] => {
+		let files: FileNode[] = [];
 		for (const node of nodes) {
-			if (!node.is_dir && (node.name === name || node.name === name + ".md")) {
-				return node.path;
-			}
-			if (node.is_dir && node.children) {
-				const found = findPathByName(node.children, name);
-				if (found) return found;
+			if (!node.is_dir) {
+				files.push(node);
+			} else if (node.children) {
+				files = files.concat(flattenFiles(node.children));
 			}
 		}
+		return files;
+	};
+
+	const resolveLinkTarget = (
+		nodes: FileNode[],
+		target: string,
+	): string | null => {
+		const normalize = (p: string) => p.replace(/\\/g, "/");
+		// Ensure target has .md extension for comparison if it's a file link
+		// But target might be a folder too... existing logic assumed files for wiki links mostly.
+		// Let's assume user wants to link to a file if extension is missing, OR a folder.
+		// WikiLinks usually link to files.
+
+		const hasExtension = target.toLowerCase().endsWith(".md");
+		// If it looks like a file link (most cases), we append .md for matching file paths
+		// But we should also check folders.
+
+		const allFiles = flattenFiles(nodes);
+
+		// Strategy:
+		// 1. Try to find exact match by path suffix (handling both file and folder)
+		// 2. If target has no separators, also try name match (First-match win)
+
+		const cleanTarget = normalize(target);
+		const targetSegments = cleanTarget.split("/").filter((s) => s.length > 0);
+
+		// 1. Path Suffix Match
+		// Check files first (adding .md if needed)
+		for (const file of allFiles) {
+			const filePath = normalize(file.path);
+			// Check with .md
+			const checkName = hasExtension ? cleanTarget : `${cleanTarget}.md`;
+			// Check if path ends with target
+			// We compare segments to avoid partial string matches like "NotRealFile.md" matching "RealFile.md"
+			const fileSegments = filePath.split("/").filter((s) => s.length > 0);
+
+			if (fileSegments.length >= targetSegments.length) {
+				// const suffix = fileSegments.slice(-targetSegments.length).join("/");
+				// Re-construct suffix to compare.
+				// Actually, simpler: does the file path end with "/" + checkName or is it equal to checkName?
+				// Be careful with separators.
+				if (
+					filePath.endsWith(`/${checkName}`) ||
+					filePath === checkName ||
+					// Also handle case where target implies extension but user didn't write it
+					(!hasExtension &&
+						(filePath.endsWith(`/${cleanTarget}.md`) ||
+							filePath === `${cleanTarget}.md`))
+				) {
+					return file.path;
+				}
+			}
+		}
+
+		// 2. Folder Match (if not found in files)
+		// Recursively find folder ending with target
+		const findFolder = (ns: FileNode[]): string | null => {
+			for (const node of ns) {
+				if (node.is_dir) {
+					const nodePath = normalize(node.path);
+					if (
+						nodePath.endsWith(`/${cleanTarget}`) ||
+						nodePath === cleanTarget
+					) {
+						return node.path;
+					}
+					if (node.children) {
+						const found = findFolder(node.children);
+						if (found) return found;
+					}
+				}
+			}
+			return null;
+		};
+		const folderMatch = findFolder(nodes);
+		if (folderMatch) return folderMatch;
+
+		// 3. Name Only Match (Legacy/Simple behavior)
+		// If target has no separators, try to find by name only
+		if (targetSegments.length === 1) {
+			const nameToFind = targetSegments[0];
+			for (const file of allFiles) {
+				if (
+					file.name === nameToFind ||
+					(!hasExtension && file.name === `${nameToFind}.md`)
+				) {
+					return file.path;
+				}
+			}
+		}
+
 		return null;
 	};
 
 	const handleNavigate = async (target: string) => {
 		const cleanTarget = target.replace(/^internal:\/\//, "");
-		const existingPath = findPathByName(fileTree, cleanTarget);
+		const existingPath = resolveLinkTarget(fileTree, cleanTarget);
 		if (existingPath) {
 			handleSelectFile(existingPath);
 		} else {
@@ -128,7 +219,7 @@ const NotesView: React.FC = () => {
 				await refreshTree();
 				const tree = await getNotesTree();
 				setFileTree(tree);
-				const found = findPathByName(tree, pendingNoteName);
+				const found = resolveLinkTarget(tree, pendingNoteName);
 				if (found) {
 					handleSelectFile(found);
 					setPendingNoteName(null);
