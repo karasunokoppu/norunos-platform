@@ -21,6 +21,7 @@ interface NotesSidebarProps {
 	onCreateFolder: (parentPath: string) => void;
 	onDelete: (path: string) => void;
 	onRename: (path: string) => void;
+	onMoveItem: (path: string, targetParentPath: string) => void;
 }
 
 const FileTreeNode: React.FC<{
@@ -29,8 +30,10 @@ const FileTreeNode: React.FC<{
 	onSelect: (path: string) => void;
 	level: number;
 	onContextMenu: (e: React.MouseEvent, node: FileNode) => void;
-}> = ({ node, selected, onSelect, level, onContextMenu }) => {
+	onMoveItem: (path: string, targetParentPath: string) => void;
+}> = ({ node, selected, onSelect, level, onContextMenu, onMoveItem }) => {
 	const [isOpen, setIsOpen] = useState(false);
+	const [isDragOver, setIsDragOver] = useState(false);
 	const isSelected = selected === node.path;
 	const paddingLeft = level * 10 + 4;
 
@@ -40,13 +43,51 @@ const FileTreeNode: React.FC<{
 		else onSelect(node.path);
 	};
 
+	const handleDragStart = (e: React.DragEvent, path: string) => {
+		e.stopPropagation();
+		e.dataTransfer.setData("text/plain", path);
+		e.dataTransfer.effectAllowed = "move";
+	};
+
+	const handleDragOver = (e: React.DragEvent) => {
+		if (!node.is_dir) return; // Only allow drop on folders
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragOver(true);
+	};
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragOver(false);
+	};
+
+	const handleDrop = (e: React.DragEvent) => {
+		if (!node.is_dir) return;
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragOver(false);
+		const sourcePath = e.dataTransfer.getData("text/plain");
+		if (sourcePath && sourcePath !== node.path) {
+			onMoveItem(sourcePath, node.path);
+		}
+	};
+
 	return (
 		<div>
 			<div
-				className={`flex items-center p-1 cursor-pointer hover:bg-bg-hover text-sm group ${isSelected ? "bg-bg-active text-text-primary" : "text-text-secondary"}`}
+				className={`flex items-center p-1 cursor-pointer text-sm group transition-colors 
+                    ${isSelected ? "bg-bg-active text-text-primary" : "text-text-secondary hover:bg-bg-hover"}
+                    ${isDragOver ? "bg-accent-secondary/20 border-2 border-accent-secondary" : "border-2 border-transparent"}
+                `}
 				style={{ paddingLeft: `${paddingLeft}px` }}
 				onClick={handleToggle}
 				onContextMenu={(e) => onContextMenu(e, node)}
+				draggable
+				onDragStart={(e) => handleDragStart(e, node.path)}
+				onDragOver={handleDragOver}
+				onDragLeave={handleDragLeave}
+				onDrop={handleDrop}
 			>
 				{node.is_dir ? (
 					<span className="mr-1">
@@ -75,6 +116,7 @@ const FileTreeNode: React.FC<{
 							onSelect={onSelect}
 							level={level + 1}
 							onContextMenu={onContextMenu}
+							onMoveItem={onMoveItem}
 						/>
 					))}
 				</div>
@@ -91,6 +133,7 @@ const NotesSidebar: React.FC<NotesSidebarProps> = ({
 	onCreateFolder,
 	onDelete,
 	onRename,
+	onMoveItem,
 }) => {
 	const [contextMenu, setContextMenu] = useState<{
 		x: number;
@@ -138,10 +181,27 @@ const NotesSidebar: React.FC<NotesSidebarProps> = ({
 		return items;
 	};
 
+	// Handler for dropping into the root area (outside of any folder)
+	const handleRootDragOver = (e: React.DragEvent) => {
+		e.preventDefault();
+	};
+
+	const handleRootDrop = (e: React.DragEvent) => {
+		e.preventDefault();
+		const sourcePath = e.dataTransfer.getData("text/plain");
+		// Check if drop target is not on a specific node (nodes stop propagation)
+		// This means we dropped on the empty space or sidebar background -> Root move
+		if (sourcePath) {
+			onMoveItem(sourcePath, ""); // Empty string for root
+		}
+	};
+
 	return (
 		<div
 			className="w-64 bg-bg-primary border-r border-border-primary flex flex-col h-full"
 			onContextMenu={(e) => e.preventDefault()}
+			onDragOver={handleRootDragOver}
+			onDrop={handleRootDrop}
 		>
 			<div className="p-2 border-b border-border-primary flex justify-between items-center text-text-primary font-bold text-sm">
 				<span>ノート</span>
@@ -173,6 +233,7 @@ const NotesSidebar: React.FC<NotesSidebarProps> = ({
 						onSelect={onSelectFile}
 						level={1}
 						onContextMenu={handleContextMenu}
+						onMoveItem={onMoveItem}
 					/>
 				))}
 				{fileTree.length === 0 && (

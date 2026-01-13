@@ -293,11 +293,48 @@ fn collect_graph_data_recursive(
     Ok(())
 }
 
-/// Generates graph data (nodes and links) for the Notes feature.
-///
-/// Scans the notes directory recursively.
-/// - Nodes are created for each Markdown file.
-/// - Links are created for every wiki-link `[[Target]]` found in the content.
+#[tauri::command]
+pub async fn move_item(
+    app: tauri::AppHandle,
+    path: String,
+    target_parent_path: String,
+) -> Result<String, String> {
+    let old_path = PathBuf::from(&path);
+    if !old_path.exists() {
+        return Err("Source item does not exist".to_string());
+    }
+
+    let file_name = old_path
+        .file_name()
+        .ok_or("Invalid source path")?
+        .to_string_lossy()
+        .to_string();
+
+    let parent_dir = if target_parent_path.is_empty() {
+        ensure_notes_dir(&app)?
+    } else {
+        PathBuf::from(target_parent_path)
+    };
+
+    if !parent_dir.exists() {
+        return Err("Target parent directory does not exist".to_string());
+    }
+
+    let new_path = parent_dir.join(&file_name);
+
+    // Prevent moving into itself or subdirectory if it's a directory
+    if old_path.is_dir() && new_path.starts_with(&old_path) {
+        return Err("Cannot move directory into its own subdirectory".to_string());
+    }
+
+    if new_path.exists() {
+        return Err("Target path already exists".to_string());
+    }
+
+    fs::rename(&old_path, &new_path).map_err(|e| e.to_string())?;
+    Ok(new_path.to_string_lossy().to_string())
+}
+
 #[tauri::command]
 pub async fn get_graph_data(app: tauri::AppHandle) -> Result<GraphData, String> {
     let root = ensure_notes_dir(&app)?;

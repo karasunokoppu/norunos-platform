@@ -44,6 +44,13 @@ export async function renameItem(
 	return await invoke("rename_item", { path, newName });
 }
 
+export async function moveItem(
+	path: string,
+	targetParentPath: string,
+): Promise<string> {
+	return await invoke("move_item", { path, targetParentPath });
+}
+
 export async function getBacklinks(target: string): Promise<string[]> {
 	return await invoke("get_backlinks", { target });
 }

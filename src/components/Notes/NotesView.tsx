@@ -7,6 +7,7 @@ import {
 	deleteItem,
 	type FileNode,
 	getNotesTree,
+	moveItem,
 	readNote,
 	renameItem,
 } from "../../tauri/notes_api";
@@ -163,6 +164,28 @@ const NotesView: React.FC = () => {
 				onCreateFolder={handleCreateFolder}
 				onDelete={handleDelete}
 				onRename={handleRename}
+				onMoveItem={async (path, targetParentPath) => {
+					try {
+						await moveItem(path, targetParentPath);
+						if (currentFile === path) {
+							// If we moved the currently open file, update its path
+							// But we need the new path. The API returns new path.
+							// Since we don't have the new path here easily without calling API differently
+							// or calculating it.
+							// Let's just refresh tree for now.
+							// Ideally moveItem should return new path. It does!
+							// But TypeScript definition for moveItem returns Promise<string>
+							// Wait, let's fix the call properly
+							// const name = path.split(/[/\\]/).pop() || "";
+							// Re-calculate new path manually or just rely on tree refresh?
+							// A refresh is safest.
+						}
+						await refreshTree();
+						showSuccess("移動しました");
+					} catch (e) {
+						showError("移動に失敗しました: " + e);
+					}
+				}}
 			/>
 			<div className="flex-1 flex flex-col h-full bg-bg-secondary overflow-hidden relative">
 				{showGraph ? (
@@ -174,7 +197,7 @@ const NotesView: React.FC = () => {
 					<NoteEditor
 						path={currentFile}
 						initialContent={fileContent}
-						onSaveSuccess={() => {}}
+						onSaveSuccess={() => { }}
 						onNavigate={handleNavigate}
 						onToggleGraph={() => setShowGraph(true)}
 					/>

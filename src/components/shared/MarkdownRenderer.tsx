@@ -20,9 +20,7 @@ const MarkdownRenderer = ({
     onNavigate,
 }: MarkdownRendererProps) => {
     // Pre-process content to improve spacing
-    const processedContent = content
-        .replace(/([^\n])\n---/g, "$1\n\n---")
-        .replace(/\n(?=\n)/g, "\n&nbsp;");
+    const processedContent = content.replace(/([^\n])\n---/g, "$1\n\n---");
 
     return (
         <div className={`prose prose-sm prose-invert max-w-none ${className}`}>
@@ -64,7 +62,7 @@ const MarkdownRenderer = ({
                     },
                     table({ children }: any) {
                         return (
-                            <table className="border-collapse border border-border-secondary w-full my-4">
+                            <table className="border-collapse border border-border-secondary w-full my-8">
                                 {children}
                             </table>
                         );
@@ -106,14 +104,14 @@ const MarkdownRenderer = ({
                     },
                     ul({ children }: any) {
                         return (
-                            <ul className="list-disc list-inside mb-4 text-text-primary">
+                            <ul className="list-disc list-outside pl-6 mb-4 text-text-primary [&_ul]:mb-0 [&_ol]:mb-0">
                                 {children}
                             </ul>
                         );
                     },
                     ol({ children }: any) {
                         return (
-                            <ol className="list-decimal list-inside mb-4 text-text-primary">
+                            <ol className="list-decimal list-outside pl-6 mb-4 text-text-primary [&_ul]:mb-0 [&_ol]:mb-0">
                                 {children}
                             </ol>
                         );
