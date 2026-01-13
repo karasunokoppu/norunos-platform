@@ -35,6 +35,7 @@ const MarkdownRenderer = ({
                         },
                     ],
                 ]}
+                urlTransform={(url) => url} // Allow all URLs (internal:// was being stripped)
                 components={{
                     code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || "");
@@ -129,7 +130,7 @@ const MarkdownRenderer = ({
                         );
                     },
                     a({ href, children }: any) {
-                        const isInternal = href && href.startsWith("internal://");
+                        const isInternal = href && String(href).startsWith("internal://");
 
                         const handleClick = async (e: React.MouseEvent) => {
                             if (isInternal && onNavigate) {
