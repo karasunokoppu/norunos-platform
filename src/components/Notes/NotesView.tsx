@@ -108,90 +108,69 @@ const NotesView: React.FC = () => {
 		target: string,
 	): string | null => {
 		const normalize = (p: string) => p.replace(/\\/g, "/");
-		// Ensure target has .md extension for comparison if it's a file link
-		// But target might be a folder too... existing logic assumed files for wiki links mostly.
-		// Let's assume user wants to link to a file if extension is missing, OR a folder.
-		// WikiLinks usually link to files.
-
 		const hasExtension = target.toLowerCase().endsWith(".md");
-		// If it looks like a file link (most cases), we append .md for matching file paths
-		// But we should also check folders.
+		const cleanTarget = normalize(target);
 
 		const allFiles = flattenFiles(nodes);
 
-		// Strategy:
-		// 1. Try to find exact match by path suffix (handling both file and folder)
-		// 2. If target has no separators, also try name match (First-match win)
+		// Collect all potential matches
+		const matches: string[] = [];
 
-		const cleanTarget = normalize(target);
-		const targetSegments = cleanTarget.split("/").filter((s) => s.length > 0);
-
-		// 1. Path Suffix Match
-		// Check files first (adding .md if needed)
 		for (const file of allFiles) {
 			const filePath = normalize(file.path);
-			// Check with .md
 			const checkName = hasExtension ? cleanTarget : `${cleanTarget}.md`;
-			// Check if path ends with target
-			// We compare segments to avoid partial string matches like "NotRealFile.md" matching "RealFile.md"
-			const fileSegments = filePath.split("/").filter((s) => s.length > 0);
 
-			if (fileSegments.length >= targetSegments.length) {
-				// const suffix = fileSegments.slice(-targetSegments.length).join("/");
-				// Re-construct suffix to compare.
-				// Actually, simpler: does the file path end with "/" + checkName or is it equal to checkName?
-				// Be careful with separators.
-				if (
-					filePath.endsWith(`/${checkName}`) ||
-					filePath === checkName ||
-					// Also handle case where target implies extension but user didn't write it
-					(!hasExtension &&
-						(filePath.endsWith(`/${cleanTarget}.md`) ||
-							filePath === `${cleanTarget}.md`))
-				) {
-					return file.path;
+			// Check if file path ends with target (suffix match)
+			// We check both with and without explicit extension logic
+			if (
+				filePath.endsWith(`/${checkName}`) ||
+				filePath === checkName ||
+				(!hasExtension && (filePath.endsWith(`/${cleanTarget}.md`) || filePath === `${cleanTarget}.md`))
+			) {
+				matches.push(file.path);
+			} else {
+				// Fallback: check exact name match if target has no separators (legacy behavior, but stricter now)
+				// Only if target is just a filename
+				if (!cleanTarget.includes("/")) {
+					const fileName = filePath.split("/").pop();
+					if (fileName === checkName || (!hasExtension && fileName === `${cleanTarget}.md`)) {
+						matches.push(file.path);
+					}
 				}
 			}
 		}
 
-		// 2. Folder Match (if not found in files)
-		// Recursively find folder ending with target
-		const findFolder = (ns: FileNode[]): string | null => {
-			for (const node of ns) {
-				if (node.is_dir) {
-					const nodePath = normalize(node.path);
-					if (
-						nodePath.endsWith(`/${cleanTarget}`) ||
-						nodePath === cleanTarget
-					) {
-						return node.path;
-					}
-					if (node.children) {
-						const found = findFolder(node.children);
-						if (found) return found;
-					}
-				}
-			}
-			return null;
-		};
-		const folderMatch = findFolder(nodes);
-		if (folderMatch) return folderMatch;
+		if (matches.length === 0) return null;
 
-		// 3. Name Only Match (Legacy/Simple behavior)
-		// If target has no separators, try to find by name only
-		if (targetSegments.length === 1) {
-			const nameToFind = targetSegments[0];
-			for (const file of allFiles) {
-				if (
-					file.name === nameToFind ||
-					(!hasExtension && file.name === `${nameToFind}.md`)
-				) {
-					return file.path;
-				}
-			}
-		}
+		// Sort matches to find the best one
+		// Priority:
+		// 1. Exact match (filePath === target)
+		// 2. Path length (shorter is better - closer to root or less extra segments)
+		// 3. Alphabetical (deterministic tie-breaker)
 
-		return null;
+		matches.sort((a, b) => {
+			const normA = normalize(a);
+			const normB = normalize(b);
+
+			// 1. Exact match check (if target users full path)
+			// We need to handle extension addition for exact match check
+			const targetWithExt = hasExtension ? cleanTarget : `${cleanTarget}.md`;
+			const aIsExact = normA === cleanTarget || normA === targetWithExt;
+			const bIsExact = normB === cleanTarget || normB === targetWithExt;
+
+			if (aIsExact && !bIsExact) return -1;
+			if (!aIsExact && bIsExact) return 1;
+
+			// 2. Path length
+			if (normA.length !== normB.length) {
+				return normA.length - normB.length;
+			}
+
+			// 3. Alphabetical
+			return normA.localeCompare(normB);
+		});
+
+		return matches[0];
 	};
 
 	const handleNavigate = async (target: string) => {
