@@ -2,10 +2,27 @@ import { save, open } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { exportBackup, importBackup } from "../../tauri/backup_api";
 import { sendNotification } from "../../utils/notification";
-import { useState } from "react";
+import { getName, getVersion } from "@tauri-apps/api/app";
+import { useEffect, useState } from "react";
 
 const SettingsView = () => {
 	const [statusMessage, setStatusMessage] = useState("");
+	const [appVersion, setAppVersion] = useState("");
+	const [appName, setAppName] = useState("");
+
+	useEffect(() => {
+		async function fetchAppInfo() {
+			try {
+				const v = await getVersion();
+				const n = await getName();
+				setAppVersion(v);
+				setAppName(n);
+			} catch (e) {
+				console.error("Failed to get app info", e);
+			}
+		}
+		fetchAppInfo();
+	}, []);
 
 	const handleExport = async () => {
 		try {
@@ -133,6 +150,22 @@ const SettingsView = () => {
 					<p className="text-sm text-text-secondary">
 						Click to send a test notification to your desktop.
 					</p>
+				</div>
+			</section>
+
+			<section className="mb-6">
+				<h3 className="text-lg font-semibold mb-2">About App</h3>
+				<div className="p-4 bg-bg-secondary rounded border border-border-primary">
+					<div className="flex items-center justify-between">
+						<div>
+							<h4 className="font-bold text-text-primary">
+								{appName || "Norunos Platform"}
+							</h4>
+							<p className="text-sm text-text-secondary">
+								Version: {appVersion || "Loading..."}
+							</p>
+						</div>
+					</div>
 				</div>
 			</section>
 		</div>
