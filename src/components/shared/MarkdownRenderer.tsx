@@ -23,7 +23,7 @@ const MarkdownRenderer = ({
     const processedContent = content.replace(/([^\n])\n---/g, "$1\n\n---");
 
     return (
-        <div className={`prose prose-sm prose-invert max-w-none ${className}`}>
+        <div className={`prose prose-invert max-w-none font-mono text-sm text-text-primary ${className}`}>
             <ReactMarkdown
                 remarkPlugins={[
                     remarkGfm,
@@ -127,6 +127,13 @@ const MarkdownRenderer = ({
                     p({ children }: any) {
                         return (
                             <p className="mb-4 text-text-primary leading-relaxed">{children}</p>
+                        );
+                    },
+                    strong({ children }: any) {
+                        return (
+                            <strong className="font-bold text-accent-secondary">
+                                {children}
+                            </strong>
                         );
                     },
                     a({ href, children }: any) {
