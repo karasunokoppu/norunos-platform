@@ -71,8 +71,8 @@ async fn check_and_notify(app: &tauri::AppHandle, pool: &SqlitePool) {
                 if !is_notified(pool, &task_id, notif_type).await {
                     let _ = send_notification(
                         app.clone(),
-                        format!("Task Started: {}", task.description),
-                        "It is time to start your task.".to_string(),
+                        format!("Task Start Reminder: {}", task.description),
+                        "It's time to start your task.".to_string(),
                     );
                     log_notification(pool, &task_id, notif_type).await;
                 }
@@ -84,10 +84,13 @@ async fn check_and_notify(app: &tauri::AppHandle, pool: &SqlitePool) {
             if diff_pre.num_minutes() >= 0 && diff_pre.num_hours() < 24 {
                 let notif_type = "start_1h_pre";
                 if !is_notified(pool, &task_id, notif_type).await {
+                    let remaining = start.signed_duration_since(now);
+                    let minutes = remaining.num_minutes();
+                    let message = format!("Task starts in {} minutes.", minutes);
                     let _ = send_notification(
                         app.clone(),
                         format!("Upcoming Task: {}", task.description),
-                        "Task starts in 1 hour.".to_string(),
+                        message,
                     );
                     log_notification(pool, &task_id, notif_type).await;
                 }
@@ -103,8 +106,8 @@ async fn check_and_notify(app: &tauri::AppHandle, pool: &SqlitePool) {
                 if !is_notified(pool, &task_id, notif_type).await {
                     let _ = send_notification(
                         app.clone(),
-                        format!("Task Due: {}", task.description),
-                        "Task deadline has passed.".to_string(),
+                        format!("Task Deadline Reminder: {}", task.description),
+                        "The task deadline has been reached.".to_string(),
                     );
                     log_notification(pool, &task_id, notif_type).await;
                 }
@@ -116,10 +119,13 @@ async fn check_and_notify(app: &tauri::AppHandle, pool: &SqlitePool) {
             if diff_pre.num_minutes() >= 0 && diff_pre.num_hours() < 24 {
                 let notif_type = "end_1h_pre";
                 if !is_notified(pool, &task_id, notif_type).await {
+                    let remaining = end.signed_duration_since(now);
+                    let minutes = remaining.num_minutes();
+                    let message = format!("Task is due in {} minutes.", minutes);
                     let _ = send_notification(
                         app.clone(),
                         format!("Task Due Soon: {}", task.description),
-                        "Task is due in 1 hour.".to_string(),
+                        message,
                     );
                     log_notification(pool, &task_id, notif_type).await;
                 }

@@ -1,7 +1,7 @@
 use crate::AppState;
 use std::fs::{self, File};
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tauri::Manager;
 use walkdir::WalkDir;
 use zip::write::FileOptions; // Import AppState from lib.rs root
